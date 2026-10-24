@@ -106,6 +106,15 @@ MEASURE_JS = r"""
       }
     }
   }
+  // 全体図(SVG)の文字が 画面で何 px になっているか
+  const ov = [];
+  for (const t of document.querySelectorAll('#screen .svgbox svg text')) {
+    const m = t.getScreenCTM(); if (!m) continue;
+    const fs = parseFloat(t.getAttribute('font-size')) * Math.hypot(m.a, m.b);
+    if (fs > 0) ov.push(fs);
+  }
+  ov.sort((a, b) => a - b);
+  res.ovText = ov.length ? { n: ov.length, min: +ov[0].toFixed(1), median: +ov[Math.floor(ov.length / 2)].toFixed(1), under12: ov.filter((v) => v < 12).length } : null;
   res.h1 = (document.querySelector('#screen h1') || {}).textContent || '';
   res.broken = !!document.querySelector('#screen .empty, #screen .notice, #screen .fallback');
   res.brokenText = res.broken ? (document.querySelector('#screen .empty, #screen .notice, #screen .fallback').textContent || '').trim().slice(0, 60) : '';
@@ -185,7 +194,7 @@ def run_ui(browser, base, bag_ids, size, quick, shots):
         warns = [c for c in con.items if c[0] == 'warning']
         rec = {'kind': kind, 'label': label, 'bag': bag, 'hash': page.evaluate('location.hash'),
                'overflowX': m['overflowX'], 'outside': m['outside'], 'smallText': m['smallText'], 'smallBtn': m['smallBtn'],
-               'errors': errs, 'h1': m['h1'].strip(), 'broken': m['broken'], 'brokenText': m['brokenText']}
+               'errors': errs, 'ovText': m.get('ovText'), 'h1': m['h1'].strip(), 'broken': m['broken'], 'brokenText': m['brokenText']}
         if extra:
             rec.update(extra)
         problem = errs or m['overflowX'] > 0 or m['broken'] or (extra and extra.get('stage', {}).get('drawn') is False)
@@ -380,7 +389,8 @@ def md_report(data, ui, pdfs, args):
                     if info.get('overlap'):
                         issues.append((2, f"{b['id']} {sz} {pp}: 並べたパーツが重なっている {info['overlap']} 組"))
                     sq = info.get('square')
-                    if info and not sq:
+                    printable = (r.get('pieces') or 0) - (r.get('measureOnly') or 0)
+                    if info and not sq and printable > 0:
                         issues.append((1, f"{b['id']} {sz} {pp}: 1枚目に 5cm の四角がない"))
                     elif sq and (abs(sq['w'] - 50) > 0.2 or abs(sq['h'] - 50) > 0.2 or not sq['inPage']):
                         issues.append((1, f"{b['id']} {sz} {pp}: 5cm の四角が {sq['w']:.1f}×{sq['h']:.1f}mm {'' if sq['inPage'] else '(紙の外)'}"))
@@ -397,6 +407,9 @@ def md_report(data, ui, pdfs, args):
                 issues.append((1, f"画面 {s['kind']} {s['label']}: {e[0]} {e[1][:160]}"))
             if s['overflowX'] > 0:
                 issues.append((2, f"画面 {s['kind']} {s['label']}: 横に {s['overflowX']}px はみ出し {s['outside'][:3]}"))
+            ot = s.get('ovText')
+            if s['kind'] == 'pattern' and ot and ot['under12']:
+                issues.append((2, f"画面 pattern {s['label']}: 全体図の文字が小さい(SVG の文字 {ot['n']} 個のうち 12px 未満 {ot['under12']}、いちばん小さい {ot['min']}px、まん中 {ot['median']}px)"))
             if s['broken']:
                 issues.append((2, f"画面 {s['kind']} {s['label']}: 「準備中」などが出ている: {s['brokenText']}"))
             if st and st.get('drawn') is False:

@@ -57,6 +57,7 @@ async ({ bags: onlyBags, sizes: onlySizes, quick }) => {
     // 文字がページの外にはみ出していないか
     let outText = 0;
     for (const t of svg.querySelectorAll('text')) {
+      if (t.closest('[clip-path]')) continue; // 切りとられる中の文字は となりのページに続く
       const b = t.getBoundingClientRect();
       if (!b.width) continue;
       if (b.left < sr.left - 0.5 || b.right > sr.right + 0.5 || b.top < sr.top - 0.5 || b.bottom > sr.bottom + 0.5) outText++;
