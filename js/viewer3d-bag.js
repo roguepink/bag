@@ -409,6 +409,7 @@ export function buildBag(S, M) {
     if (cfg.fam === 'knot' && hd.type === 'loop') continue;
     buildHandle(S_, hd);
   }
+  cfg.viewTheta = cfg.fam === 'backpack' ? -1.15 : -0.55;
   return { group, cfg };
 }
 
@@ -445,6 +446,10 @@ function buildFlap(S_, flap, closure) {
     place(x, total, tmp); st.push(tmp.clone().add(V(0, 0, 0.8)));
   }
   line(st);
+  // ふち(厚み)
+  const edge = [];
+  for (let i = 0; i <= 60; i++) { const x = lerp(-A, A, i / 60); place(x, backDrop + arc + Lx(x), tmp); edge.push(tmp.clone()); }
+  add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edge, false, 'centripetal'), 120, 1.7, 6, false), M.rimDark);
   return h - Lx(0);
 }
 
@@ -480,6 +485,18 @@ function buildPocket(S_, pk, limitY) {
 function buildClosure(S_, closure, flap, flapBottom) {
   const { cfg, body, h, add, group, M, topA, topB } = S_;
   if (!closure) return;
+  if (closure === 'zip' && cfg.fam === 'backpack') {
+    const pts = [];
+    for (let i = 0; i <= 60; i++) { const u = i / 60, s = lerp(-0.2, 0.2, u), t = 0.5 + 0.5 * Math.sin(PI * u) ** 0.35; pts.push(body.point(Math.min(t, 0.995), s).addScaledVector(body.normal(Math.min(t, 0.995), s), 1.2)); }
+    const cv = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+    add(new THREE.TubeGeometry(cv, 160, 4.5, 6, false), M.zipTape);
+    add(new THREE.TubeGeometry(cv, 160, 2.2, 6, false), M.metal).position.set(0, 0, 0);
+    for (const u of [0.32, 0.36]) {
+      const p = cv.getPointAt(u), tab = new THREE.Mesh(new THREE.BoxGeometry(7, 22, 2.5), M.metal);
+      tab.position.copy(p).add(V(0, -11, 4)); tab.rotation.x = 0.25; group.add(tab);
+    }
+    return;
+  }
   if (closure === 'zip' && cfg.closedTop) {
     const yTop = h + 0.6, half = Math.max(10, topA - 10);
     const tape = new THREE.Mesh(new THREE.BoxGeometry(half * 2, 1.6, Math.min(16, topB * 1.2 + 4)), M.zipTape);
@@ -563,7 +580,7 @@ function boxX(S_, center, n, size) {   // 持ち手の縫いつけ(四角とバ�
 }
 
 function buildHandle(S_, hd) {
-  const { cfg, body, h, add, M, group, topA, topB } = S_;
+  const { cfg, body, h, w, add, M, group, topA, topB } = S_;
   const type = hd.type || 'loop';
   const width = clamp(num(hd.width, type === 'shoulder' || type === 'cross' || type === 'backpack' ? 32 : 25), 6, 80);
   const thick = 3.2, att = clamp(h * 0.12, 25, 45);
@@ -626,16 +643,15 @@ function buildHandle(S_, hd) {
   if (type === 'backpack') {
     const len = clamp(num(hd.len, 700), 200, 2000);
     for (const sx of [-1, 1]) {
-      const tTop = cfg.closedTop ? 0.93 : 0.9;
-      const p0 = body.facePoint(sx * Math.min(28, topA * 0.4), tTop, -1, thick);
-      const p1 = body.facePoint(sx * Math.min(28, topA * 0.4), tTop - 0.07, -1, thick);
-      const pEnd = body.facePoint(sx * topA * 0.78, 0.06, -1, thick);
-      const pPre = body.facePoint(sx * topA * 0.74, 0.14, -1, thick);
-      const bow = Math.min(90, len * 0.12);
-      const zB = Math.min(p0.z, pEnd.z);
-      const mid1 = V(sx * topA * 0.35, h * 0.68, zB - bow);
-      const mid2 = V(sx * topA * 0.6, h * 0.3, zB - bow * 0.85);
-      strapMesh(S_, [p0, p1, mid1, mid2, pPre, pEnd], { width: (u) => lerp(width * 1.6, width, smooth(0, 0.3, u)), thick: 7, hint: V(0, 0, -1), mode: 'face' }, mat);
+      const tTop = 0.9, xt = sx * clamp(topA * 0.38, 30, 60), xb = sx * topA * 0.8;
+      const p0 = body.facePoint(xt, tTop, -1, 4);
+      const p1 = body.facePoint(xt * 1.05, tTop - 0.06, -1, 6);
+      const pEnd = body.facePoint(xb, 0.05, -1, 3);
+      const pPre = body.facePoint(xb * 0.97, 0.13, -1, 5);
+      const bow = Math.min(85, len * 0.11), zB = Math.min(p0.z, pEnd.z);
+      const mid1 = V(lerp(xt, xb, 0.3), h * 0.66, zB - bow);
+      const mid2 = V(lerp(xt, xb, 0.7), h * 0.32, zB - bow * 0.8);
+      strapMesh(S_, [p0, p1, mid1, mid2, pPre, pEnd], { width: (u) => lerp(width * 1.5, width, smooth(0.05, 0.35, u)), thick: 9, hint: V(0, 0, -1), mode: 'face' }, mat);
     }
     // 上の手さげループ
     const pf = V(0, h - 2, Math.min(18, topB * 0.6)), pb = V(0, h - 2, -Math.min(18, topB * 0.6));
@@ -674,7 +690,7 @@ function buildKnot(S_, handles) {
   pS.push(V(xs, h - 15, -topB * 0.9));
   // 輪は前とうしろに分かれた2枚が上でつながる形。幅は x 方向
   const loopSt = strapGeometry(pS, { width: kw, thick: 5, hint: V(1, 0, 0), mode: 'width' });
-  add(loopSt.geo, M.outerD); add(loopSt.geo, M.liningD);
+  add(loopSt.geo, M.outerD);
   // 左: 長い持ち手(耳から上がって右の輪を通る)
   const L = clamp(num(kLong.len, 500), 200, 2000), rise = clamp(L * 0.32, 120, Math.max(h * 1.1, 260));
   const x0 = -xs;
@@ -688,7 +704,7 @@ function buildKnot(S_, handles) {
   S_.line(st.edges[0], true, M.stitch); S_.line(st.edges[1], true, M.stitch);
   // 右の耳(輪のつけ根)と左の耳のつけ根をなめらかに
   for (const x of [xs, x0]) {
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), M.outerD);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), M.rim);
     cap.scale.set(kw * 0.5, 14, Math.max(topB, 6)); cap.position.set(x, h - 2, 0); group.add(cap);
   }
 }
@@ -708,9 +724,9 @@ function buildAzuma(S_, handles) {
     S_.line(st.edges[sx > 0 ? 0 : 1], true, M.stitch);
   }
   // 結び目
-  const knot = new THREE.Mesh(new THREE.TorusGeometry(15, 10, 12, 24), M.outerD);
+  const knot = new THREE.Mesh(new THREE.TorusGeometry(15, 10, 12, 24), M.rim);
   knot.position.set(0, h + rise + 4, 0); group.add(knot);
-  const k2 = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 12), M.outerD);
+  const k2 = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 12), M.rim);
   k2.position.set(0, h + rise + 4, 0); k2.scale.set(1.3, 1, 0.9); group.add(k2);
   for (const sx of [-1, 1]) {   // 結んだ先
     const st = strapGeometry([V(sx * 10, h + rise + 8, 0), V(sx * 30, h + rise + 30, 4), V(sx * 48, h + rise + 22, 8)],

@@ -24,6 +24,11 @@ const FILES = [
   './js/fabric.js',
   './js/viewer3d.js',
   './js/bags/index.js',
+  './js/bags/parts.js',
+  './js/bags/pouch.js',
+  './js/bags/tote.js',
+  './js/bags/wa.js',
+  './js/viewer3d-bag.js',
 ];
 
 self.addEventListener('install', (e) => {

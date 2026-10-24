@@ -60,7 +60,7 @@ export function pickSize(bag, want) {
 /** bag.shape/pieces/steps/extras に渡す p */
 export function paramsOf(bag, sizeKey) {
   const s = (bag.sizes && bag.sizes[sizeKey]) || {};
-  return { ...s, size: sizeKey, sizeKey };
+  return { ...s, key: sizeKey, size: sizeKey, sizeKey };
 }
 const cm = (mm) => {
   const v = Math.round((Number(mm) || 0) / 10 * 10) / 10;
@@ -163,7 +163,7 @@ function iconKeyFor(id = '') {
   const map = [
     ['tote', 'tote'], ['eco', 'tote'], ['market', 'tote'], ['shoulder', 'shoulder'], ['sacoche', 'shoulder'], ['cross', 'shoulder'],
     ['pouch', 'pouch'], ['zip', 'pouch'], ['back', 'backpack'], ['ruck', 'backpack'], ['kinchaku', 'drawstring'],
-    ['draw', 'drawstring'], ['purse', 'drawstring'], ['azuma', 'azuma'], ['furoshiki', 'azuma'], ['clutch', 'clutch'], ['envelope', 'clutch'],
+    ['draw', 'drawstring'], ['wa', 'drawstring'], ['outing', 'boston'], ['odekake', 'boston'], ['purse', 'drawstring'], ['azuma', 'azuma'], ['furoshiki', 'azuma'], ['clutch', 'clutch'], ['envelope', 'clutch'],
     ['round', 'round'], ['moon', 'halfmoon'], ['knot', 'knot'], ['boston', 'boston'], ['travel', 'boston'],
   ];
   for (const [k, v] of map) if (s.includes(k)) return v;
@@ -173,11 +173,13 @@ export function iconSVG(key, label = '') {
   const body = ICONS[key] || ICONS.bag;
   return `<svg viewBox="0 0 96 96" role="img" aria-label="${esc(label)}">${body}</svg>`;
 }
+// 仲間の絵は、見た目をそろえるため こちらの線画を先に使う(絵文字は知らない仲間のときだけ)
 export function groupIcon(group) {
   const ic = group && group.icon;
   if (typeof ic === 'string' && ic.trim().startsWith('<svg')) return ic;
-  if (typeof ic === 'string' && ic.trim() && ic.length <= 4) return `<span aria-hidden="true">${esc(ic)}</span>`;
-  return iconSVG(iconKeyFor(group && group.id), group && group.name);
+  const key = iconKeyFor(group && group.id);
+  if (key === 'bag' && typeof ic === 'string' && ic.trim() && ic.length <= 4) return `<span aria-hidden="true">${esc(ic)}</span>`;
+  return iconSVG(key, group && group.name);
 }
 export function bagIcon(bag) {
   let fam = null;

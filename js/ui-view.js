@@ -33,9 +33,9 @@ export async function renderView(root, { bag, go, isStale }) {
         <section class="section" id="fabric-sec" style="margin-top:28px">
           <p class="picker-label"><span>布の柄</span><span class="now" id="fab-now"></span></p>
           <div class="swatches" id="fabrics" role="group" aria-label="布の柄"></div>
+          <p class="scroll-hint" aria-hidden="true">‹ 横にずらすと、ほかの柄も ›</p>
           <p class="picker-label" style="margin-top:14px"><span>色</span><span class="now" id="cw-now"></span></p>
           <div class="swatches" id="colorways" role="group" aria-label="色"></div>
-          <p class="scroll-hint">← 横にずらすと、ほかの柄も見られます →</p>
         </section>
       </div>
     </div>`;
@@ -43,7 +43,7 @@ export async function renderView(root, { bag, go, isStale }) {
   const dock = h(`<div class="dock"><div class="dock-inner">
     <button class="btn btn-primary btn-block" type="button" id="to-pattern">型紙を見る<span class="arrow" aria-hidden="true">›</span></button>
   </div></div>`);
-  document.body.appendChild(dock);
+  root.querySelector('.controls').appendChild(dock);
   dock.querySelector('#to-pattern').addEventListener('click', () => go(`b/${encodeURIComponent(bag.id)}/pattern`));
 
   // ---- 3D ----
@@ -70,7 +70,7 @@ export async function renderView(root, { bag, go, isStale }) {
   // 指で回せる案内(一度だけ)
   let hint = null;
   if (viewer && !store.get('hintShown')) {
-    hint = h(`<div class="hint">${FINGER_SVG}<span>指でなぞると、くるっと回ります</span></div>`);
+    hint = h(`<div class="hint">${FINGER_SVG}<span>指でなぞると回ります</span></div>`);
     stage.appendChild(hint);
     const hide = () => {
       if (!hint) return;

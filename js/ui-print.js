@@ -53,8 +53,10 @@ export async function renderPrint(root, { bag, go, isStale }) {
   const cols = (res && res.cols) || pages.length || 1;
   const rows = (res && res.rows) || 1;
 
-  const map = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) =>
-    `<span>${String.fromCharCode(65 + r)}-${c + 1}</span>`).join('')).join('');
+  // 貼り方の地図(使わない場所は空ける)
+  const grid = (res && Array.isArray(res.map)) ? res.map
+    : Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => `${String.fromCharCode(65 + r)}-${c + 1}`));
+  const map = grid.map((row) => row.map((l) => (l ? `<span>${esc(l)}</span>` : '<span class="blank"></span>')).join('')).join('');
 
   root.innerHTML = `
     <div class="page-head">

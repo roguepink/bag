@@ -79,6 +79,7 @@ function makeMaterials(fl, look, maxAniso) {
     liningCap: new THREE.MeshStandardMaterial({ color: liningC, roughness: 0.95, side: THREE.BackSide, vertexColors: true }),
     flapLining: new THREE.MeshStandardMaterial({ color: liningC, roughness: 0.95, side: THREE.BackSide }),
     rim: new THREE.MeshStandardMaterial({ color: fl.avg.clone().multiplyScalar(0.95), roughness: 0.9 }),
+    rimDark: new THREE.MeshStandardMaterial({ color: fl.avg.clone().multiplyScalar(0.7), roughness: 0.9 }),
     strap: strapC ? new THREE.MeshStandardMaterial({ color: strapC, roughness: 0.8, side: THREE.DoubleSide }) : fab(THREE.DoubleSide, false),
     cordStrap: new THREE.MeshStandardMaterial({ color: strapC || fl.avg, roughness: 0.85 }),
     cord: new THREE.MeshStandardMaterial({ color: strapC || liningC, roughness: 0.85 }),
@@ -135,7 +136,7 @@ export function createViewer(containerEl) {
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), shadowMat);
   shadow.rotation.x = -PI / 2; shadow.renderOrder = -1; scene.add(shadow);
 
-  let bag = null, mats = null, tex = null, token = 0;
+  let bag = null, mats = null, tex = null, token = 0, shownOnce = false;
   const target = new THREE.Vector3(0, 150, 0);
   let fitDist = 1200;
   // 向き: theta(横)・phi(上下)・dist(距離)。今の値は目標に、ゆっくり近づく
@@ -177,7 +178,7 @@ export function createViewer(containerEl) {
   // ---- さわる
   const pts = new Map();
   let pinch0 = 0, zoom0 = 1, lastTap = 0;
-  const touched = () => { lastTouch = performance.now(); dirty = true; };
+  const touched = () => { lastTouch = performance.now(); kick(); };
   function onDown(e) {
     canvas.setPointerCapture?.(e.pointerId);
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -247,6 +248,9 @@ export function createViewer(containerEl) {
     catch (e) { console.error('[viewer3d] 形を作れませんでした', e); built = buildBag({ family: 'boxed', w: 300, h: 300, d: 100 }, newMats); }
     clearBag();
     bag = built.group; mats = newMats; tex = fl.tex;
+    viewTheta = built.cfg.viewTheta ?? DEF.theta;
+    if (Math.abs(goal.theta - cur.theta) < 1e-3 && performance.now() - lastTouch > IDLE_MS && !shownOnce) { cur.theta = goal.theta = viewTheta; }
+    shownOnce = true;
     scene.add(bag);
     // まん中と大きさ
     const box = new THREE.Box3().setFromObject(bag), c = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3());
@@ -267,13 +271,14 @@ export function createViewer(containerEl) {
   function setAutoRotate(on) { autoRotate = !!on; if (on) lastTouch = -1e9; kick(); }
 
   // 一覧用の絵(決まった向きで撮る)。PNG の dataURL
-  function snapshot(px = 512) {
+  let viewTheta = DEF.theta;
+  function snapshot(px = 512, opt = {}) {
     px = clamp(Math.round(px) || 512, 32, 2048);
     const pr = renderer.getPixelRatio(), oldAspect = camera.aspect;
     renderer.setPixelRatio(1); renderer.setSize(px, px, false);
     camera.aspect = 1; camera.updateProjectionMatrix();
     const vf = camera.fov * PI / 180; const d = sphereR / Math.sin(vf / 2) * 0.98;
-    placeCamera({ theta: DEF.theta, phi: 0.28, zoom: 1 }, d);
+    placeCamera({ theta: opt.theta ?? viewTheta, phi: opt.phi ?? 0.28, zoom: 1 }, d);
     renderer.render(scene, camera);
     const url = canvas.toDataURL('image/png');
     renderer.setPixelRatio(pr); renderer.setSize(W, H, false);

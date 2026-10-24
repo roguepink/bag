@@ -17,7 +17,7 @@ export async function renderHome(root, { catalog, go }) {
       <h1>どんなバッグを<br>作りますか</h1>
       <p class="lead">形をえらぶと、原寸の型紙を家のプリンターで印刷できます。</p>
       <ol class="steps-mini" aria-label="すすめ方">
-        <li><b>1</b>えらぶ</li><li><b>2</b>見る</li><li><b>3</b>型紙</li><li><b>4</b>印刷</li><li><b>5</b>作る</li>
+        <li><b>1</b>選ぶ</li><li><b>2</b>見る</li><li><b>3</b>型紙</li><li><b>4</b>印刷</li><li><b>5</b>作る</li>
       </ol>
     </section>
     <div id="resume-slot"></div>

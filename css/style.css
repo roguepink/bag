@@ -80,7 +80,7 @@ a { color: var(--accent); }
 }
 .screen.has-dock { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
 .fade-in { animation: fade .22s ease-out both; }
-@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.4; letter-spacing: .06em; margin: 0; }
 h1 { font-size: clamp(1.55rem, 6.4vw, 2.2rem); }
@@ -122,6 +122,10 @@ h3 { font-size: 1.15rem; }
   background: linear-gradient(to top, var(--bg) 70%, rgba(250, 247, 240, 0));
 }
 .dock-inner { max-width: 620px; margin: 0 auto; }
+@media (min-width: 900px) {
+  .dock { position: static; padding: 0; margin-top: 30px; background: none; }
+  .screen.has-dock { padding-bottom: 60px; }
+}
 
 /* ---------- はじめ(仲間) ---------- */
 .hero {
@@ -136,7 +140,7 @@ h3 { font-size: 1.15rem; }
 .hero h1 { position: relative; }
 .hero .lead { position: relative; }
 .steps-mini { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 20px 0 0; padding: 0; list-style: none; position: relative; color: var(--ink-2); font-size: .92rem; max-width: 520px; }
-.steps-mini li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.steps-mini li { white-space: nowrap; position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
 .steps-mini li + li::before { content: ""; position: absolute; top: 19px; right: 50%; width: 100%; height: 2px; background: var(--line-2); z-index: 0; }
 .steps-mini b { position: relative; z-index: 1; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; font-size: .95rem; }
 
@@ -155,7 +159,7 @@ h3 { font-size: 1.15rem; }
 @media (min-width: 720px) { .group-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
 .group-card {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  min-height: 176px; padding: 18px 10px 16px;
+  min-height: 176px; padding: 18px 6px 16px;
   background: var(--paper); border: 2px solid var(--line); border-radius: var(--radius);
   box-shadow: var(--shadow); cursor: pointer; text-align: center;
   transition: border-color .15s, transform .1s;
@@ -164,7 +168,7 @@ h3 { font-size: 1.15rem; }
 .group-card:active { transform: scale(.98); background: var(--accent-soft); }
 .group-card .gicon { width: 84px; height: 84px; color: var(--accent); display: grid; place-items: center; font-size: 56px; line-height: 1; }
 .group-card .gicon svg { width: 84px; height: 84px; }
-.group-card .gname { font-weight: 700; font-size: 1.08rem; line-height: 1.45; }
+.group-card .gname { font-weight: 700; font-size: 1rem; line-height: 1.45; }
 .group-card .gcount { color: var(--ink-2); font-size: .92rem; }
 
 /* ---------- バッグ一覧 ---------- */
@@ -229,7 +233,7 @@ h3 { font-size: 1.15rem; }
   display: flex; align-items: center; gap: 12px;
   padding: 12px 22px; border-radius: 999px;
   background: rgba(33, 59, 92, .92); color: #fff; font-weight: 700; font-size: 1rem;
-  white-space: nowrap; pointer-events: none;
+  white-space: nowrap; max-width: calc(100% - 24px); pointer-events: none;
   animation: hintIn .4s ease-out both;
 }
 .hint svg { width: 36px; height: 36px; flex: none; animation: swipe 1.8s ease-in-out infinite; }
@@ -261,7 +265,7 @@ h3 { font-size: 1.15rem; }
 .size-info .note::before { content: "◎ "; color: var(--accent); }
 
 .swatches {
-  display: flex; gap: 12px; overflow-x: auto; padding: 6px 4px 12px; margin: 0 -4px;
+  position: relative; display: flex; gap: 12px; overflow-x: auto; padding: 6px 4px 12px; margin: 0 -4px;
   scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: thin;
 }
 .swatch {
@@ -278,6 +282,10 @@ h3 { font-size: 1.15rem; }
 .swatch[aria-pressed="true"] .dot { box-shadow: 0 0 0 4px var(--accent), 0 4px 10px rgba(33, 59, 92, .25); }
 .swatch[aria-pressed="true"] .nm { color: var(--accent); font-weight: 700; }
 .scroll-hint { font-size: .92rem; color: var(--ink-2); margin: -2px 0 0; }
+@media (min-width: 900px) {
+  .swatches { flex-wrap: wrap; overflow: visible; gap: 14px 6px; }
+  .scroll-hint { display: none; }
+}
 
 /* ---------- 型紙 ---------- */
 .overview {
@@ -359,6 +367,7 @@ h3 { font-size: 1.15rem; }
   background: #fff; border: 1.5px solid var(--line-2); border-radius: 4px;
   font-weight: 700; font-size: .92rem; color: var(--accent);
 }
+.page-map span.blank { background: none; border: 1.5px dashed var(--line); }
 .page-map-wrap { overflow-x: auto; }
 .tip {
   display: flex; gap: 14px; align-items: flex-start;
