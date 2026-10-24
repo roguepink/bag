@@ -82,6 +82,8 @@ function makeMaterials(fl, look, maxAniso) {
     rimDark: new THREE.MeshStandardMaterial({ color: fl.avg.clone().multiplyScalar(0.7), roughness: 0.9 }),
     strap: strapC ? new THREE.MeshStandardMaterial({ color: strapC, roughness: 0.8, side: THREE.DoubleSide }) : fab(THREE.DoubleSide, false),
     cordStrap: new THREE.MeshStandardMaterial({ color: strapC || fl.avg, roughness: 0.85 }),
+    leather: new THREE.MeshStandardMaterial({ color: strapC || new THREE.Color('#7a5638'), roughness: 0.5, metalness: 0.05, side: THREE.DoubleSide }),
+    wood: new THREE.MeshStandardMaterial({ color: new THREE.Color('#b9895a'), roughness: 0.55 }),
     cord: new THREE.MeshStandardMaterial({ color: strapC || liningC, roughness: 0.85 }),
     bead: new THREE.MeshStandardMaterial({ color: new THREE.Color('#8b6a48'), roughness: 0.55 }),
     zipTape: new THREE.MeshStandardMaterial({ color: new THREE.Color('#2e2d2b'), roughness: 0.8 }),

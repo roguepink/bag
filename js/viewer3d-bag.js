@@ -230,9 +230,13 @@ const FAMILIES = ['flat', 'boxed', 'gusset', 'cylinder', 'halfmoon', 'trapezoid'
 function familyConfig(S) {
   let fam = FAMILIES.includes(S.family) ? S.family : 'boxed';
   const w = clamp(num(S.w, 300), 40, 2000), h = clamp(num(S.h, 300), 40, 2000), d = clamp(num(S.d, 0), 0, 1500);
-  const W = w / 2, closure = S.closure || null;
-  const cfg = { fam, w, h, d, W, closure, dent: 0.35, sag: h * 0.012, bulge: 0.04, closedTop: false,
-    sideSeams: [0.25, 0.75], bottomEdge: false, topStitch: true };
+  const W = w / 2, hs = Array.isArray(S.handles) ? S.handles.filter(Boolean) : [];
+  let closure = S.closure || null;
+  const knapsack = fam === 'backpack' && hs.some(x => x.type === 'cord') && !hs.some(x => x.type === 'backpack');
+  if (knapsack && !closure) closure = 'drawstring';
+  const cfg = { fam, w, h, d, W, closure, knapsack, dent: 0.35, sag: h * 0.012, bulge: 0.04, closedTop: false,
+    sideSeams: [0.25, 0.75], bottomEdge: false, topStitch: true,
+    zipStyle: S.zip === 'around' || S.zip === 'top' ? S.zip : (fam === 'backpack' ? 'around' : 'top') };
   let D, r;
   switch (fam) {
     case 'flat': {
@@ -271,13 +275,19 @@ function familyConfig(S) {
       cfg.bottomEdge = true; break;
     }
     case 'backpack': {
-      D = Math.max(d / 2, 50); const R = Math.min(W * 0.75, h * 0.28); r = clamp(num(S.corner, D * 0.6), 5, D);
+      D = Math.max(d / 2, 50);
+      const sack = closure === 'drawstring', hasFlap = !!S.flap;
+      const R = sack ? Math.min(W * 0.25, h * 0.1) : hasFlap ? Math.min(W * 0.55, h * 0.22) : Math.min(W * 0.95, h * 0.42);
+      const rb = Math.min(W * 0.35, h * 0.14, 45);
+      r = clamp(num(S.corner, D * 0.85), 8, D);
       cfg.prof = t => {
         const y = t * h; let a = W, b = D;
-        if (y > h - R) { const q = (y - (h - R)) / R, f = Math.sqrt(Math.max(0, 1 - q * q)); a = W - R + R * f; b = D * (0.55 + 0.45 * f); }
-        return { a, b: b * (1 + 0.04 * Math.sin(PI * t)), r: Math.min(r, b) };
+        if (y > h - R) { const q = (y - (h - R)) / R, f = Math.sqrt(Math.max(0, 1 - q * q)); a = W - R + R * f; b = D * (0.6 + 0.4 * f); }
+        if (y < rb) { const q = (rb - y) / rb, f = Math.sqrt(Math.max(0, 1 - q * q)); a = Math.min(a, W - rb + rb * f); b = Math.min(b, D * (0.8 + 0.2 * f)); }
+        b *= 1 + 0.05 * Math.sin(PI * t);
+        return { a, b, r: Math.min(r, b, a) };
       };
-      cfg.closedTop = true; if (!closure && !S.flap) cfg.closure = 'zip'; cfg.bottomEdge = true; break;
+      cfg.bulge = 0.1; cfg.closedTop = !sack; if (!closure && !hasFlap) cfg.closure = 'zip'; cfg.bottomEdge = !sack; break;
     }
     case 'round': {
       D = Math.max(d / 2, w * 0.17); const Wt = num(S.topW, w * 0.72) / 2;
@@ -299,7 +309,7 @@ function familyConfig(S) {
     }
     case 'gathered': {
       D = Math.max(d / 2, W * 0.42); const Wt = num(S.topW, w * 0.6) / 2;
-      const band = clamp(h * 0.14, 25, 60), yb = h - band, Dt = Math.min(D * 0.55, Wt * 0.5);
+      const band = S.band != null && num(S.band, 0) > 0 ? clamp(num(S.band, 40), 10, h * 0.4) : clamp(h * 0.14, 25, 60), yb = h - band, Dt = Math.min(D * 0.55, Wt * 0.5);
       cfg.prof = t => {
         const y = t * h;
         if (y >= yb) return { a: Wt * 1.02, b: Dt, r: Dt * 0.9 };
@@ -332,6 +342,19 @@ function familyConfig(S) {
   }
   if (cfg.closure === 'zip' || cfg.closure === 'frame') cfg.closedTop = fam !== 'gathered';
   if (cfg.closedTop) { cfg.dent = 0; cfg.sag = 0; cfg.topStitch = false; }
+
+  if (S.bottom === 'round') {
+    const base = cfg.prof, rb = Math.min(h * 0.25, W * 0.6);
+    cfg.prof = t => {
+      const p = base(t), y = t * h; if (y >= rb) return p;
+      const q = (rb - y) / rb, f = 0.3 + 0.7 * Math.sqrt(Math.max(0, 1 - q * q));
+      return { ...p, a: p.a * f, b: p.b * Math.max(f, 0.55), r: p.r * f };
+    };
+    cfg.bottomEdge = false;
+  } else if (S.bottom === 'flat') {
+    const tf = { halfmoon: 0.14, round: 0.14, gathered: 0.06, knot: 0.12 }[fam];
+    if (tf) { const base = cfg.prof; cfg.prof = t => base(tf + t * (1 - tf)); cfg.bottomEdge = true; }
+  }
 
   // 巾着: 口をしぼってギャザーにする
   if (cfg.closure === 'drawstring' && fam !== 'envelope') {
@@ -388,12 +411,22 @@ export function buildBag(S, M) {
   }
 
   const topA = cfg.prof(1).a, topB = cfg.prof(1).b;
-  const S_ = { cfg, body, group, add, line, M, h, w, topA, topB };
+  const S_ = { S, cfg, body, group, add, line, M, h, w, topA, topB };
 
   // フラップ
   const flap = S.flap || cfg.flap;
   let flapBottom = h;
   if (flap) flapBottom = buildFlap(S_, flap, S.closure);
+  if (flap && cfg.fam === 'backpack') {
+    const bx = Math.min(S_.topA * 0.45, w * 0.22);
+    for (const sx of [-1, 1]) {
+      const x = sx * bx, y0 = Math.min(h - 10, flapBottom + 45);
+      const pts = [body.facePoint(x, y0 / h, 1, 5.5), body.facePoint(x, (flapBottom + 6) / h, 1, 5), body.facePoint(x, (flapBottom - 14) / h, 1, 2.5), body.facePoint(x, Math.max(0.08, (flapBottom - 70) / h), 1, 2)];
+      strapMesh(S_, pts, { width: 20, thick: 2.4, hint: V(0, 0, 1), mode: 'face' }, M.strap);
+      const bk = new THREE.Mesh(new THREE.BoxGeometry(28, 14, 4), M.metal);
+      bk.position.copy(body.facePoint(x, (flapBottom - 8) / h, 1, 4)); group.add(bk);
+    }
+  }
   // ポケット
   if (S.pocket) buildPocket(S_, S.pocket, flap ? flapBottom : h);
   // 口の閉じ方
@@ -409,56 +442,63 @@ export function buildBag(S, M) {
     if (cfg.fam === 'knot' && hd.type === 'loop') continue;
     buildHandle(S_, hd);
   }
-  cfg.viewTheta = cfg.fam === 'backpack' ? -1.15 : -0.55;
+  cfg.viewTheta = cfg.fam === 'backpack' ? -0.85 : -0.55;
   return { group, cfg };
 }
 
 // ---------------------------------------------------------------- フラップ(かぶせ)
 function buildFlap(S_, flap, closure) {
-  const { body, h, add, line, M } = S_;
+  const { cfg, body, h, add, line, M } = S_;
   const fh = clamp(num(flap.h, h * 0.4), 15, h * 0.95), shape = flap.shape || 'square';
-  const A = S_.topA + 1.5, Rr = Math.max(S_.topB, 4) + 2.5;
-  const Lx = x => {
-    const xn = clamp(Math.abs(x) / A, 0, 1);
+  const A0 = S_.topA + 1.5, Rr = Math.max(S_.topB, 4) + 2.5;
+  const Amax = Math.max(A0, cfg.prof(clamp((h - fh) / h, 0, 1)).a + 1.5);
+  const Aat = y => Math.max(A0, cfg.prof(clamp(y / h, 0, 1)).a + 1.5);   // その高さの本体の半分の幅
+  const Lx = xn => {                     // xn: -1〜1(左はし〜右はし)
+    xn = clamp(Math.abs(xn), 0, 1); const A = Amax;
     if (shape === 'point') return fh * (0.5 + 0.5 * (1 - xn) ** 1.1);
     if (shape === 'round') { const Re = Math.min(fh * 0.7, A * 0.9); return fh - Re + Re * Math.sqrt(Math.max(0, 1 - xn * xn)); }
-    const c = Math.min(12, A * 0.2), ax = Math.abs(x);
+    const c = Math.min(12, A * 0.2), ax = xn * A;
     if (ax > A - c) { const q = (ax - (A - c)) / c; return fh - c + c * Math.sqrt(Math.max(0, 1 - q * q)); }
     return fh;
   };
   const backDrop = 14, arc = PI * Rr;
-  const place = (x, l, p) => {           // l: うしろ(下がった所)から測った長さ
-    if (l < backDrop) { const y = h - backDrop + l; p.copy(body.facePoint(x, y / h, -1, 1.8)); return; }
+  const place = (xn, l, p) => {          // l: うしろ(下がった所)から測った長さ
+    if (l < backDrop) { const y = h - backDrop + l; p.copy(body.facePoint(xn * Aat(y), y / h, -1, 1.8)); return; }
     l -= backDrop;
-    if (l < arc) { const th = l / Rr; p.set(x, h + Rr * Math.sin(th) * 0.55, -Rr * Math.cos(th)); return; }
-    const y = h - (l - arc); p.copy(body.facePoint(x, clamp(y / h, 0, 1), 1, 2.6 + 6 * smooth(h, h - 25, y) * 0));
+    if (l < arc) {
+      const th = l / Rr, e = Math.pow(Math.abs(xn), 6);
+      p.set(xn * A0, h + 2.5 + Rr * Math.sin(th) * 0.3 * (1 - e) - 3 * e, -Rr * Math.cos(th)); return;
+    }
+    const y = h - (l - arc); p.copy(body.facePoint(xn * Aat(y), clamp(y / h, 0, 1), 1, 3));
   };
-  const NU = 40, NV = 36, tmp = V();
+  const NU = 40, NV = 40, tmp = V();
   const geo = gridGeometry(NU, NV, (u, v, p, t) => {
-    const x = lerp(-A, A, u), total = backDrop + arc + Lx(x), l = v * total;
-    place(x, l, p); t.set(x, -l);
+    const xn = lerp(-1, 1, u), total = backDrop + arc + Lx(xn), l = v * total;
+    place(xn, l, p); t.set(p.x, -l);
   }, V(0, 1, 0.3));
   add(geo, M.flapOuter); add(geo, M.flapLining);
   // ふちのステッチ
   const st = [];
   for (let i = 0; i <= 80; i++) {
-    const x = lerp(-A + 7, A - 7, i / 80), total = backDrop + arc + Math.max(0, Lx(x) - 7);
-    place(x, total, tmp); st.push(tmp.clone().add(V(0, 0, 0.8)));
+    const xn = lerp(-0.94, 0.94, i / 80), total = backDrop + arc + Math.max(0, Lx(xn) - 7);
+    place(xn, total, tmp); st.push(tmp.clone().add(V(0, 0, 0.8)));
   }
   line(st);
   // ふち(厚み)
   const edge = [];
-  for (let i = 0; i <= 60; i++) { const x = lerp(-A, A, i / 60); place(x, backDrop + arc + Lx(x), tmp); edge.push(tmp.clone()); }
-  add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edge, false, 'centripetal'), 120, 1.7, 6, false), M.rimDark);
+  for (let i = 0; i <= 60; i++) { const xn = lerp(-1, 1, i / 60); place(xn, backDrop + arc + Lx(xn), tmp); edge.push(tmp.clone()); }
+  add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edge, false, 'centripetal'), 120, 2.2, 6, false), M.rimDark);
   return h - Lx(0);
 }
 
 // ---------------------------------------------------------------- ポケット
 function buildPocket(S_, pk, limitY) {
-  const { body, h, w, add, line, M, topA } = S_;
+  const { cfg, body, h, w, add, line, M } = S_;
   const side = pk.side === 'back' ? -1 : 1;
-  const pw = clamp(num(pk.w, w * 0.5), 30, topA * 1.6), ph = clamp(num(pk.h, h * 0.4), 25, h * 0.6);
+  const ph = clamp(num(pk.h, h * 0.4), 25, h * 0.6);
   const yt = Math.min(h * 0.75, (side > 0 ? limitY : h) - 18), yb = Math.max(15, yt - ph);
+  const aMin = Math.min(cfg.prof(clamp(yt / h, 0, 1)).a, cfg.prof(clamp(yb / h, 0, 1)).a);
+  const pw = clamp(num(pk.w, w * 0.5), 30, Math.max(31, aMin * 1.6));
   const pt = (x, y, lift) => body.facePoint(x, clamp(y / h, 0, 1), side, lift);
   const geo = gridGeometry(14, 10, (u, v, p, t) => {
     const x = lerp(-pw / 2, pw / 2, u), y = lerp(yb, yt, v);
@@ -485,12 +525,17 @@ function buildPocket(S_, pk, limitY) {
 function buildClosure(S_, closure, flap, flapBottom) {
   const { cfg, body, h, add, group, M, topA, topB } = S_;
   if (!closure) return;
-  if (closure === 'zip' && cfg.fam === 'backpack') {
+  if (closure === 'zip' && cfg.zipStyle === 'around') {
     const pts = [];
-    for (let i = 0; i <= 60; i++) { const u = i / 60, s = lerp(-0.2, 0.2, u), t = 0.5 + 0.5 * Math.sin(PI * u) ** 0.35; pts.push(body.point(Math.min(t, 0.995), s).addScaledVector(body.normal(Math.min(t, 0.995), s), 1.2)); }
+    if (cfg.fam === 'backpack') {   // 前の面のふちを、わきから上をこえて反対のわきへ
+      for (let i = 0; i <= 60; i++) { const u = i / 60, s = lerp(-0.2, 0.2, u), t = 0.45 + 0.55 * Math.sin(PI * u) ** 0.35; pts.push(body.point(Math.min(t, 0.995), s).addScaledVector(body.normal(Math.min(t, 0.995), s), 1.2)); }
+    } else {                        // 口のふちをぐるり
+      for (let i = 0; i <= 80; i++) { const s = 0.27 + 0.96 * i / 80; pts.push(body.point(0.996, s).addScaledVector(body.normal(0.996, s), 1.2)); }
+    }
     const cv = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
-    add(new THREE.TubeGeometry(cv, 160, 4.5, 6, false), M.zipTape);
-    add(new THREE.TubeGeometry(cv, 160, 2.2, 6, false), M.metal).position.set(0, 0, 0);
+    const zr = cfg.fam === 'backpack' ? 4.5 : 3;
+    add(new THREE.TubeGeometry(cv, 160, zr, 6, false), M.zipTape);
+    add(new THREE.TubeGeometry(cv, 160, zr * 0.5, 6, false), M.metal);
     for (const u of [0.32, 0.36]) {
       const p = cv.getPointAt(u), tab = new THREE.Mesh(new THREE.BoxGeometry(7, 22, 2.5), M.metal);
       tab.position.copy(p).add(V(0, -11, 4)); tab.rotation.x = 0.25; group.add(tab);
@@ -529,7 +574,7 @@ function buildClosure(S_, closure, flap, flapBottom) {
     const t = cfg.channelY / h, pts = [];
     for (let i = 0; i < 120; i++) { const s = 0.5 + i / 120; pts.push(body.point(t, s).addScaledVector(body.normal(t, s), 2.6)); }
     add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 220, 2.8, 6, true), M.cord);
-    for (const sx of [-1, 1]) {  // ひもの先
+    if (!cfg.knapsack) for (const sx of [-1, 1]) {  // ひもの先
       const s0 = sx * 0.03, p0 = body.point(t, s0).addScaledVector(body.normal(t, s0), 3);
       const end = p0.clone().add(V(sx * 22, -Math.min(110, h * 0.35), 18));
       const mid = p0.clone().lerp(end, 0.5).add(V(sx * 4, 0, 12));
@@ -585,11 +630,44 @@ function buildHandle(S_, hd) {
   const width = clamp(num(hd.width, type === 'shoulder' || type === 'cross' || type === 'backpack' ? 32 : 25), 6, 80);
   const thick = 3.2, att = clamp(h * 0.12, 25, 45);
   const isCord = type === 'cord';
-  const mat = M.strap;
+  const hm = hd.material || S_.S.handleMaterial;
+  const mat = hm === 'self' ? M.outerD : hm === 'leather' || hm === 'wood' ? M.leather : M.strap;
+  const at = num(hd.at, num(S_.S.strapAt, 0));   // 持ち手の付け位置(mm、まん中から)
+
+  if (isCord && cfg.fam === 'backpack') {    // ナップサック: 口のひもがそのまま肩ひも
+    const tc = (cfg.channelY || h - 35) / h;
+    for (const sx of [-1, 1]) {
+      const pts = [body.point(tc, sx > 0 ? 0.3 : 0.7).addScaledVector(body.normal(tc, sx > 0 ? 0.3 : 0.7), 3)];
+      const a0 = cfg.prof(tc).a, a1 = cfg.prof(0.05).a;
+      for (let i = 1; i <= 9; i++) {
+        const u = i / 9, t = lerp(tc - 0.03, 0.045, u);
+        pts.push(body.facePoint(sx * lerp(a0 * 0.75, a1 * 0.9, Math.pow(u, 0.8)), t, -1, 4 + 34 * Math.sin(PI * u) ** 1.3));
+      }
+      add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), 90, 3.4, 7, false), M.cord);
+      const end = pts[pts.length - 1];
+      const tab = new THREE.Mesh(new THREE.BoxGeometry(22, 26, 3), mat); tab.position.copy(end).add(V(0, 4, 0)); group.add(tab);
+      const g = new THREE.Mesh(new THREE.TorusGeometry(5.5, 1.8, 8, 16), M.metal); g.position.copy(end).add(V(0, 2, -2)); group.add(g);
+    }
+    return;
+  }
+
+  if (type === 'loop' && hm === 'wood') {    // 木の持ち手(半円の輪+布のタブ)
+    const Rw = clamp(at ? at : topA * 0.55, 45, Math.max(50, topA - 8));
+    for (const side of [1, -1]) {
+      const zTop = body.facePoint(0, 1, side, 2).z, yc = h + 22;
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(Rw, 7, 10, 40, PI), M.wood);
+      ring.position.set(0, yc, zTop); group.add(ring);
+      for (const sx of [-1, 1]) {
+        const p0 = V(sx * Rw, yc + 4, zTop), p1 = body.facePoint(sx * Rw * 0.96, (h - att * 0.6) / h, side, 1.5);
+        strapMesh(S_, [p0, p0.clone().lerp(p1, 0.5).add(V(0, 0, side * 2)), p1], { width: 26, thick: 3, hint: V(0, 0, side), mode: 'face', noStitch: true }, M.outerD);
+      }
+    }
+    return;
+  }
 
   if (type === 'loop' || type === 'cord') {
     const len = clamp(num(hd.len, 380), 120, 2500);
-    const sep = clamp(topA * 0.42, 25, topA - width / 2 - 6);
+    const sep = clamp(at ? at : topA * 0.42, 20, Math.max(21, topA - width / 2 - 6));
     const R = Math.min(riseFor(sep, Math.max(len - 2 * att, 60)), Math.max(h * 1.2, 300));
     for (const side of [1, -1]) {
       const tA = (h - att) / h, tB = (h - att * 0.45) / h;
@@ -641,21 +719,36 @@ function buildHandle(S_, hd) {
   }
 
   if (type === 'backpack') {
-    const len = clamp(num(hd.len, 700), 200, 2000);
+    const len = clamp(num(hd.len, 700), 200, 2000), bw = clamp(num(hd.width, 38), 15, 70);
+    const tTop = cfg.closedTop ? 0.86 : (cfg.channelY ? (cfg.channelY - 30) / h : 0.84);
+    const aTop = cfg.prof(tTop).a, aBot = cfg.prof(0.05).a;
+    const bow = clamp(len * 0.035, 10, 32), N = 14;
     for (const sx of [-1, 1]) {
-      const tTop = 0.9, xt = sx * clamp(topA * 0.38, 30, 60), xb = sx * topA * 0.8;
-      const p0 = body.facePoint(xt, tTop, -1, 4);
-      const p1 = body.facePoint(xt * 1.05, tTop - 0.06, -1, 6);
-      const pEnd = body.facePoint(xb, 0.05, -1, 3);
-      const pPre = body.facePoint(xb * 0.97, 0.13, -1, 5);
-      const bow = Math.min(85, len * 0.11), zB = Math.min(p0.z, pEnd.z);
-      const mid1 = V(lerp(xt, xb, 0.3), h * 0.66, zB - bow);
-      const mid2 = V(lerp(xt, xb, 0.7), h * 0.32, zB - bow * 0.8);
-      strapMesh(S_, [p0, p1, mid1, mid2, pPre, pEnd], { width: (u) => lerp(width * 1.5, width, smooth(0.05, 0.35, u)), thick: 9, hint: V(0, 0, -1), mode: 'face' }, mat);
+      const pts = [], nrm = [];
+      for (let i = 0; i <= N; i++) {
+        const u = i / N, t = lerp(tTop, 0.05, u);
+        const x = sx * lerp(Math.min(aTop * 0.42, 55), aBot * 0.8, Math.pow(u, 1.3));
+        const sS = body.faceS(x, t, -1);
+        const lift = 3 + bow * Math.pow(Math.sin(PI * clamp(u * 1.08 - 0.04, 0, 1)), 1.4);
+        pts.push(body.point(t, sS).addScaledVector(body.normal(t, sS), lift)); nrm.push(body.normal(t, sS));
+      }
+      const st = strapMesh(S_, pts, { width: (u) => lerp(bw * 1.15, bw * 0.62, smooth(0.45, 0.8, u)), thick: 4,
+        hint: (u) => nrm[Math.round(u * N)], mode: 'face' }, mat);
+      // 長さを変える金具
+      const bp = st.curve.getPointAt(0.74), bt = st.curve.getTangentAt(0.74), bn = nrm[Math.round(0.74 * N)];
+      const bk = new THREE.Mesh(new THREE.BoxGeometry(bw * 0.8, 10, 4), M.metal);
+      bk.position.copy(bp).addScaledVector(bn, 2.5);
+      bk.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V().crossVectors(bt, bn).normalize(), bt, bn));
+      group.add(bk);
     }
+    // 肩ひもの付け根の当て布
+    const yk = body.facePoint(0, tTop + 0.02, -1, 2.5);
+    const yoke = new THREE.Mesh(new THREE.BoxGeometry(Math.min(aTop * 0.9, 120), 34, 4), mat); yoke.position.copy(yk); group.add(yoke);
     // 上の手さげループ
     const pf = V(0, h - 2, Math.min(18, topB * 0.6)), pb = V(0, h - 2, -Math.min(18, topB * 0.6));
-    strapMesh(S_, [pf, V(0, h + 28, 0), pb], { width: 20, thick, hint: V(1, 0, 0), mode: 'width' }, mat);
+    let mid = V(0, h + 28, 0);
+    if (!cfg.closedTop) { const t0 = (cfg.channelY ? cfg.channelY - 12 : h - 12) / h; pf.copy(body.facePoint(0, t0, -1, 2)); pb.copy(body.facePoint(0, t0 - 0.08, -1, 2)); mid = body.facePoint(0, t0 - 0.03, -1, 24); }
+    strapMesh(S_, [pf, mid, pb], { width: 20, thick, hint: V(1, 0, 0), mode: 'width' }, mat);
     return;
   }
 
@@ -675,63 +768,92 @@ function buildHandle(S_, hd) {
   }
 }
 
-// ノットバッグ: 右に短い輪、左から長い持ち手が通って結ぶ
-function buildKnot(S_, handles) {
-  const { cfg, body, h, w, add, M, group, topA, topB } = S_;
-  const kLong = handles.find(x => x && x.type === 'knot') || { len: Math.max(h * 1.6, 450) };
-  const kw = clamp(num(kLong.width, w * 0.17), 30, 90);
-  const xs = topA - kw / 2 - 4;   // 右の輪の位置
-  const ear = (u) => lerp(Math.max(topB * 2, 10), 7, smooth(0, 0.22, u));
-  // 右: 短い輪(前からうしろへ、上でつながる)
-  const Rs = clamp(h * 0.16, 30, 70);
-  const pS = [];
-  pS.push(V(xs, h - 15, topB * 0.9));
-  for (let i = 0; i <= 12; i++) { const th = PI * i / 12; pS.push(V(xs, h + Rs * Math.sin(th), topB * 0.9 * Math.cos(th) + 0 * th)); }
-  pS.push(V(xs, h - 15, -topB * 0.9));
-  // 輪は前とうしろに分かれた2枚が上でつながる形。幅は x 方向
-  const loopSt = strapGeometry(pS, { width: kw, thick: 5, hint: V(1, 0, 0), mode: 'width' });
-  add(loopSt.geo, M.outerD);
-  // 左: 長い持ち手(耳から上がって右の輪を通る)
-  const L = clamp(num(kLong.len, 500), 200, 2000), rise = clamp(L * 0.32, 120, Math.max(h * 1.1, 260));
-  const x0 = -xs;
-  const pts = [
-    V(x0, h - 12, 0), V(x0, h + 30, 0), V(x0 * 0.75, h + rise * 0.75, 0), V(x0 * 0.2, h + rise, 0),
-    V(xs * 0.55, h + rise * 0.82, 0), V(xs - 2, h + Rs * 0.62, 0), V(xs + kw * 0.55, h + Rs * 0.25, 0),
-    V(xs + kw * 0.8, h - Rs * 0.4, 6), V(xs + kw * 0.7, h - Rs * 1.1, 10),
-  ];
-  const st = strapGeometry(pts, { width: (u) => lerp(kw * 1.05, kw * 0.75, smooth(0, 0.25, u)), thick: ear, hint: V(0, 0, 1), mode: 'face' });
-  add(st.geo, M.outerD);
-  S_.line(st.edges[0], true, M.stitch); S_.line(st.edges[1], true, M.stitch);
-  // 右の耳(輪のつけ根)と左の耳のつけ根をなめらかに
-  for (const x of [xs, x0]) {
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), M.rim);
-    cap.scale.set(kw * 0.5, 14, Math.max(topB, 6)); cap.position.set(x, h - 2, 0); group.add(cap);
-  }
+// 柄つきの玉(結び目など)。UV を実寸(mm)にして柄の大きさをそろえる
+function fabricBall(S_, pos, rx, ry, rz) {
+  const g = new THREE.SphereGeometry(1, 20, 14), uv = g.attributes.uv, R = (rx + ry + rz) / 3;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * TAU * R, uv.getY(i) * PI * R);
+  const m = S_.add(g, S_.M.outerD); m.scale.set(rx, ry, rz); m.position.copy(pos); return m;
 }
 
-// あずま袋: 両わきから三角が上がって、上で結ぶ
+// 布1枚の帯(格子)。offset(u,v) で面の向きに少しずらす(しわ・ふくらみ)
+function sheetStrip(S_, points, { width, hint = V(0, 0, 1), offset = () => 0, outward = 1, nu = 44, nv = 12, stitch = [] }) {
+  const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal'), len = curve.getLength();
+  const fr = [];
+  for (let i = 0; i <= nu; i++) {
+    const u = i / nu, p = curve.getPointAt(u), t = curve.getTangentAt(u);
+    const wd = V().crossVectors(t, hint).normalize(), nm = V().crossVectors(wd, t).normalize();
+    fr.push({ p, wd, nm });
+  }
+  const Wf = typeof width === 'function' ? width : () => width;
+  const at = (u, v, out) => {
+    const f = fr[Math.round(u * nu)];
+    return out.copy(f.p).addScaledVector(f.wd, (v - 0.5) * Wf(u)).addScaledVector(f.nm, offset(u, v));
+  };
+  const geo = gridGeometry(nu, nv, (u, v, p, t) => { at(u, v, p); t.set(u * len, (v - 0.5) * Wf(u)); }, fr[Math.round(nu / 2)].nm.clone().multiplyScalar(outward));
+  S_.add(geo, S_.M.flapOuter); S_.add(geo, S_.M.flapLining);
+  for (const v of stitch) {
+    const pts = []; for (let i = 0; i <= nu; i++) { const u = i / nu; pts.push(at(u, v, V()).addScaledVector(fr[i].nm, outward * 0.7)); }
+    S_.line(pts, true, S_.M.stitch);
+  }
+  return { curve, len, fr, at };
+}
+
+// ノットバッグ: 右に短い輪。左の長い持ち手がそこを通って、先が結んである
+function buildKnot(S_, handles) {
+  const { body, h, w, add, M, topA, topB } = S_, S = S_.S;
+  const kLong = handles.find(x => x && x.type === 'knot') || { len: Math.max(h * 1.6, 450) };
+  const ks = S.knotShort, ksLen = typeof ks === 'number' ? ks : ks && num(ks.len, 0), ksW = ks && typeof ks === 'object' ? ks.width : null;
+  const kw = clamp(num(kLong.width, w * 0.17), 30, 90), sw = clamp(num(ksW, kw * 0.85), 25, 90);
+  const xs = topA - sw / 2 - 4, zs = Math.max(topB * 0.95, 16);
+  const Rs = ksLen ? clamp(riseFor(zs, Math.max(ksLen - 30, 60)), 35, 170) : clamp(h * 0.32, 55, 115);
+  // 右: 短い輪(前とうしろがつながった、丸い輪)
+  const pS = [V(xs, h - 16, zs)];
+  for (let i = 0; i <= 16; i++) { const th = PI * i / 16; pS.push(V(xs, h + 4 + Rs * Math.sin(th), zs * Math.cos(th) * (1 + 0.55 * Math.sin(th)))); }
+  pS.push(V(xs, h - 16, -zs));
+  const loopSt = strapGeometry(pS, { width: (u) => lerp(sw, sw * 0.8, Math.sin(PI * u)), thick: 4, hint: V(1, 0, 0), mode: 'width' });
+  add(loopSt.geo, M.outerD);
+  S_.line(loopSt.edges[0], true, M.stitch); S_.line(loopSt.edges[1], true, M.stitch);
+  // 左: 長い持ち手 → 右の輪をくぐる → 結び目 → 先が垂れる
+  const L = clamp(num(kLong.len, 500), 200, 2000), rise = clamp(L * 0.32, 120, Math.max(h * 1.1, 260));
+  const x0 = -xs, yIn = h + 4 + Rs * 0.42, kwT = Math.min(kw * 0.6, Rs * 0.55);
+  const kx = xs + sw * 0.5 + kwT * 0.7, ky = yIn - 4;
+  const pts = [
+    V(x0, h - 12, 0), V(x0, h + 30, 0), V(x0 * 0.8, h + rise * 0.72, 0), V(x0 * 0.25, h + rise, 0),
+    V(xs * 0.4, h + rise * 0.86, 0), V(xs - sw * 1.4, yIn + Rs * 0.35, 0), V(xs - sw * 0.6, yIn, 0),
+    V(xs, yIn - 2, 0), V(kx - kwT * 0.4, ky, 0),
+  ];
+  const st = strapGeometry(pts, { width: (u) => lerp(kw * 1.05, kwT, smooth(0.1, 0.75, u)), thick: (u) => lerp(Math.max(topB * 2, 10), 5, smooth(0, 0.2, u)), hint: V(0, 0, 1), mode: 'face' });
+  add(st.geo, M.outerD);
+  S_.line(st.edges[0], true, M.stitch); S_.line(st.edges[1], true, M.stitch);
+  fabricBall(S_, V(kx, ky, 0), kwT * 0.62, kwT * 0.55, Math.max(13, kwT * 0.42));   // 結び目
+  const tail = strapGeometry([V(kx + kwT * 0.2, ky - 6, 2), V(kx + kwT * 0.45, ky - Rs * 0.5, 5), V(kx + kwT * 0.35, ky - Rs * 1.05, 9)],
+    { width: (u) => lerp(kwT * 0.9, kwT * 1.15, u), thick: 4, hint: V(0, 0, 1) });
+  add(tail.geo, M.outerD);
+}
+
+// あずま袋: 両わきから三角が上がって、上で結ぶ。三角は布1枚(前とうしろ)で、やわらかなしわ
 function buildAzuma(S_, handles) {
-  const { body, h, w, add, M, group, topA, topB } = S_;
+  const { h, M, topA, topB } = S_;
   const hd = handles.find(x => x) || {};
   const rise = clamp(num(hd.len, h * 1.6) * 0.42, h * 0.45, h * 1.4);
-  const wb = topA * 0.78;
+  const wb = topA * 0.8, zb = Math.max(topB, 4);
   for (const sx of [-1, 1]) {
-    const base = V(sx * (topA - wb / 2), h - 6, 0);
-    const pts = [base, V(sx * (topA - wb / 2) * 0.92, h + rise * 0.3, 0), V(sx * topA * 0.45, h + rise * 0.7, 0), V(sx * 22, h + rise, 0)];
-    const st = strapGeometry(pts, { width: (u) => lerp(wb, 40, Math.pow(u, 0.75)), thick: (u) => lerp(Math.max(topB * 2, 8), 7, smooth(0, 0.4, u)), hint: V(0, 0, 1), mode: 'face' });
-    add(st.geo, M.outerD);
-    // 三角の外側のふちのステッチ
-    S_.line(st.edges[sx > 0 ? 0 : 1], true, M.stitch);
+    const pts = [V(sx * (topA - wb / 2), h - 4, 0), V(sx * (topA - wb / 2) * 0.9, h + rise * 0.3, 0), V(sx * topA * 0.42, h + rise * 0.7, 0), V(sx * 20, h + rise, 0)];
+    for (const layer of [1, -1]) {
+      sheetStrip(S_, pts, {
+        width: (u) => lerp(wb, 34, Math.pow(u, 0.7)), hint: V(0, 0, 1), outward: layer,
+        offset: (u, v) => layer * (zb * (1 - smooth(0, 0.6, u)) * (0.85 + 0.15 * Math.sin(PI * v)) + 1.2)
+          + (2.4 * Math.sin(v * PI * 3 + u * 10 + layer) + 1.6 * Math.sin(v * PI * 7 - u * 6)) * smooth(0.02, 0.25, u) * (1 - 0.6 * u),
+        stitch: layer > 0 ? [sx > 0 ? 0.95 : 0.05] : [],
+      });
+    }
   }
-  // 結び目
-  const knot = new THREE.Mesh(new THREE.TorusGeometry(15, 10, 12, 24), M.rim);
-  knot.position.set(0, h + rise + 4, 0); group.add(knot);
-  const k2 = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 12), M.rim);
-  k2.position.set(0, h + rise + 4, 0); k2.scale.set(1.3, 1, 0.9); group.add(k2);
-  for (const sx of [-1, 1]) {   // 結んだ先
-    const st = strapGeometry([V(sx * 10, h + rise + 8, 0), V(sx * 30, h + rise + 30, 4), V(sx * 48, h + rise + 22, 8)],
-      { width: (u) => lerp(26, 18, u), thick: 6, hint: V(0, 0, 1) });
-    add(st.geo, M.outerD);
+  // 結び目と、結んだ先
+  const ky = h + rise + 6;
+  fabricBall(S_, V(0, ky, 0), 20, 15, 13);
+  for (const sx of [-1, 1]) {
+    sheetStrip(S_, [V(sx * 8, ky + 4, 0), V(sx * 28, ky + 26, 3), V(sx * 50, ky + 18, 7)],
+      { width: (u) => lerp(26, 18, u), hint: V(0, 0, 1), offset: (u, v) => 1.5 * Math.sin(v * PI * 2 + u * 5), nu: 12, nv: 4 });
   }
 }
 
