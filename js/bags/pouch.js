@@ -69,10 +69,10 @@ export const poFlat = {
         grain: [[w * 0.12, h * 0.28], [w * 0.12, h * 0.78]],
         labelAt: [w / 2, h * 0.55],
         marks: [
-          note([w / 2, 8], '↑ 口(ファスナーを付ける辺)'),
+          note([w / 2, 8], '↑口(ファスナーを付ける辺)'),
           { type: 'notch', at: [w / 2, 0] },
           { type: 'notch', at: [w / 2, h] },
-          note([w / 2, h - 7], '裏布は 底に 返し口 8cm を残す'),
+          note([w / 2, h - 7], '裏布は底に返し口8cmを残す'),
         ],
       },
       tabPiece(1),
@@ -104,7 +104,7 @@ export const poFlat = {
   },
 
   extras(p) {
-    return [`ファスナー ${zipText(p.zip)} 1本`, '接着芯(うすいもの)'];
+    return [`ファスナー${zipText(p.zip)} 1本`, '接着芯(うすいもの)'];
   },
 };
 
@@ -141,11 +141,11 @@ export const poBox = {
         grain: [[W * 0.12, H * 0.2], [W * 0.12, H * 0.62]],
         labelAt: [cx, H * 0.5],
         marks: [
-          note([cx, 8], '↑ 口(ファスナーを付ける辺)'),
+          note([cx, 8], '↑口(ファスナーを付ける辺)'),
           { type: 'notch', at: [cx, 0] },
           note([W - c / 2, H - c / 2 + 1], 'マチ'),
           note([c / 2, H - c / 2 + 1], 'マチ'),
-          note([W - 7, (H - c) * 0.5], '裏布は ここに 返し口 8cm', true),
+          note([W - 7, (H - c) * 0.5], '裏布はここに返し口8cm', true),
         ],
       },
       tabPiece(2),
@@ -177,7 +177,7 @@ export const poBox = {
   },
 
   extras(p) {
-    return [`ファスナー ${zipText(p.zip)} 1本`, '接着芯(うすいもの)'];
+    return [`ファスナー${zipText(p.zip)} 1本`, '接着芯(うすいもの)'];
   },
 };
 
@@ -232,11 +232,11 @@ export const poMegane = {
         grain: [[w * 0.15, h * 0.2], [w * 0.15, h * 0.42]],
         labelAt: [w / 2, h * 0.55],
         marks: [
-          note([w / 2, 6], '↑ 口'),
+          note([w / 2, 6], '↑口'),
           { type: 'notch', at: [w / 2, h] },
           { type: 'dot', at: [w / 2, F - t] },
           note([w / 2, F - t + 6], 'マグネット凹(表布)'),
-          note([w / 2, h - 14], 'キルト芯は 細い線で切る'),
+          note([w / 2, h - 14], 'キルト芯は細い線で切る'),
         ],
       },
       {
@@ -251,7 +251,7 @@ export const poMegane = {
           { type: 'notch', at: [w / 2, F + h] },
           { type: 'dot', at: [w / 2, t] },
           note([w / 2, t + 6], 'マグネット凸(裏布)'),
-          note([w / 2, F + 8], '↑ ここから上が ふた'),
+          note([w / 2, F + 8], '↑ここから上がふた'),
         ],
       },
     ];
@@ -285,7 +285,7 @@ export const poMegane = {
     return [
       'マグネットボタン(うすいもの) 1組',
       '接着キルト芯(めがねを守る、厚みのある芯)',
-      `バイアステープ 幅12.7mm × ${cmText(tapeLen(p))}cm`,
+      `バイアステープ幅12.7mm×${cmText(tapeLen(p))}cm`,
     ];
   },
 };
@@ -345,13 +345,13 @@ export const poGama = {
   group: 'pouch',
   level: 3,
   trend: true,
-  desc: 'パチンととじる金具の口。なつかしくて、いま また人気です。',
+  desc: 'パチンととじる金具の口。なつかしくて、いままた人気です。',
   sizes: {
     S: { w: 150, h: 120, d: 40, frameW: 120, frameH: 55 },
     M: { w: 190, h: 150, d: 50, frameW: 150, frameH: 65 },
     L: { w: 230, h: 180, d: 60, frameW: 180, frameH: 75 },
   },
-  sizeNote: { S: '小銭・お薬(口金 12cm)', M: '化粧品・めがね(口金 15cm)', L: '化粧品・通帳(口金 18cm)' },
+  sizeNote: { S: '小銭・お薬(口金12cm)', M: '化粧品・めがね(口金15cm)', L: '化粧品・通帳(口金18cm)' },
 
   shape(p) {
     return {
@@ -384,7 +384,7 @@ export const poGama = {
           { type: 'notch', at: dR[0] }, { type: 'notch', at: dR[2] },
           { type: 'notch', at: dL[0] }, { type: 'notch', at: dL[2] },
           note([dL[1][0] + 2, dL[1][1] - 4], 'ダーツ'),
-          note([cx, p.h - 8], '裏布は 底に 返し口 6cm'),
+          note([cx, p.h - 8], '裏布は底に返し口6cm'),
         ],
       },
     ];
@@ -419,7 +419,7 @@ export const poGama = {
   extras(p) {
     return [
       `口金(角型・差しこみ式)幅${cmText(p.frameW)}cm 1個(幅は、外がわのはしからはしまで。くし型でも、口の線をなおせば使えます)`,
-      `紙ひも 約${paperCord(mouthLen(p))}cm(口金の みぞ 2本ぶん)`,
+      `紙ひも約${paperCord(mouthLen(p))}cm(口金のみぞ2本ぶん)`,
       '手芸用ボンド・目打ち・ペンチ・当て布',
       '接着芯(うすいもの)',
       '手の力が弱い方は「縫いつけ式」の口金もおすすめです',
@@ -445,7 +445,7 @@ export const poCard = {
     M: { w: 130, h: 175, d: 0, flapH: 75 },
     L: { w: 170, h: 230, d: 0, flapH: 100 },
   },
-  sizeNote: { S: '診察券・カード', M: '通帳・お薬手帳', L: 'A5 の手帳・母子手帳' },
+  sizeNote: { S: '診察券・カード', M: '通帳・お薬手帳', L: 'A5の手帳・母子手帳' },
 
   shape(p) {
     return {
@@ -462,7 +462,7 @@ export const poCard = {
     const t = F * 0.35;                        // スナップの位置(ふたの先から)
     const snap = p.key === 'S' ? 'スナップ' : 'マグネット';
     const body = {
-      id: 'body', name: '本体(ふた・後ろ・前 続き)', cut: 1, fabric: 'outer',
+      id: 'body', name: '本体(ふた・後ろ・前続き)', cut: 1, fabric: 'outer',
       more: [{ fabric: 'lining', cut: 1 }, { fabric: 'interfacing', cut: 1 }],
       outline: rect(w, L), seam: 10, fold: null,
       grain: [[w * 0.12, F + h * 0.15], [w * 0.12, F + h * 0.6]],
@@ -490,7 +490,7 @@ export const poCard = {
         outline: rect(w, ph), seam: 10, fold: 'top',
         grain: [[w * 0.12, ph * 0.25], [w * 0.12, ph * 0.8]],
         labelAt: [w / 2, ph * 0.45],
-        marks: [note([w / 2, ph - 6], '下の縫い代は 裏へ折って 縫いつける')],
+        marks: [note([w / 2, ph - 6], '下の縫い代は裏へ折って縫いつける')],
       });
     }
     return out;

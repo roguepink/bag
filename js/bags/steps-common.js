@@ -41,7 +41,8 @@ export const zigzag = (where) => `${where}の縫い代に、ジグザグミシ�
 // 出したはしは、口を縫うと縫い代の中に入り、ふちの縫いおさえでもう一度とまる(丈夫になる)。
 export function tackStep({ name = '持ち手', where = '▲の印', tuck = 20, bag = '表袋' } = {}) {
   const out = tuck - 10;
-  const end = out > 0 ? `はしを口の切り口から${cmText(out)}cm出して` : 'はしを口の切り口にそろえて';
+  const amount = out >= 10 ? `${cmText(out)}cm` : `${out}mm`;
+  const end = out > 0 ? `はしを口の切り口から${amount}出して` : 'はしを口の切り口にそろえて';
   return `${bag}を表に返し、${name}を表がわに下向きにたらして${where}に合わせ、${end}仮どめします(ねじれないように)。`;
 }
 

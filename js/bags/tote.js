@@ -107,7 +107,7 @@ export const toteBasic = {
   group: 'tote',
   level: 2,
   trend: true,
-  desc: 'マチがあって たっぷり入る、裏布つきのトート。内ポケットつき。',
+  desc: 'マチがあってたっぷり入る、裏布つきのトート。内ポケットつき。',
   sizes: {
     S: { w: 260, h: 220, d: 100, handle: 380, handleW: 25 },
     M: { w: 340, h: 300, d: 120, handle: 480, handleW: 30 },
@@ -146,13 +146,13 @@ export const toteBasic = {
         marks: [
           { type: 'notch', at: [cx - gap / 2, 0] }, { type: 'notch', at: [cx - gap / 2 - p.handleW, 0] },
           { type: 'notch', at: [cx + gap / 2, 0] }, { type: 'notch', at: [cx + gap / 2 + p.handleW, 0] },
-          { type: 'text', at: [cx, 9], text: '▲ 持ち手を付ける位置' },
+          { type: 'text', at: [cx, 9], text: '▲持ち手を付ける位置' },
           { type: 'notch', at: [cx, H] },
           { type: 'dot', at: [cx, 20], label: 'マグネット(裏布)' },
           placeBox(cx - pw / 2, py, pw, ph, '(裏布だけ)内ポケット付け位置'),
           { type: 'text', at: [W - c / 2, H - c / 2 + 1], text: 'マチ', size: 4 },
           { type: 'text', at: [c / 2, H - c / 2 + 1], text: 'マチ', size: 4 },
-          { type: 'text', at: [cx, H - 9], text: '裏布は 底に 返し口 12cm', size: 3 },
+          { type: 'text', at: [cx, H - 9], text: '裏布は底に返し口12cm', size: 3 },
         ],
       },
       foldPocket({ pw, ph }),
@@ -186,7 +186,7 @@ export const toteBasic = {
   },
 
   extras() {
-    return ['マグネットボタン 1組(お好みで)', '接着芯(しっかりさせたいとき・お好みで)'];
+    return ['マグネットボタン1組(お好みで)', '接着芯(しっかりさせたいとき・お好みで)'];
   },
 };
 

@@ -122,7 +122,9 @@ export async function renderPrint(root, { bag, go, isStale }) {
     const r = pr && typeof pr.printPages === 'function' ? safe(() => pr.printPages(bag, size, { paper: pp }), null) : null;
     results[pp] = r; counts[pp] = r && Array.isArray(r.pages) ? r.pages.length : 0;
   }
-  const hasPattern = !noPattern && !(results.A4 && results.A4.hasPattern === false);
+  const hp = pr && typeof pr.hasPattern === 'function' ? safe(() => pr.hasPattern(bag, size), null) : null;
+  const hasPattern = hp === null ? (!noPattern && !(results.A4 && results.A4.hasPattern === false)) : !!hp;
+  const sizeName = (pr && pr.SIZE_LABEL && pr.SIZE_LABEL[size]) || SIZE_NAME[size];
 
   let route = store.get('printRoute') || guessRoute();
   let phoneOS = isIOS ? 'iphone' : 'android';
@@ -157,7 +159,7 @@ export async function renderPrint(root, { bag, go, isStale }) {
       <div class="page-head">
         <p class="kicker">印刷</p>
         <h1>印刷のしかた</h1>
-        <p class="lead">${esc(bag.name)}(${SIZE_NAME[size]})の型紙を、<b>${paper}の紙${pages.length ? `${pages.length}枚` : ''}</b>に印刷します。</p>
+        <p class="lead">${esc(bag.name)}(${esc(sizeName)})の型紙を、<b>${paper}の紙${pages.length ? `${pages.length}枚` : ''}</b>に印刷します。</p>
       </div>
       <div class="paper-mini" role="group" aria-label="紙の大きさ">
         ${['A4', 'A3'].map((pp) => `<button type="button" class="paper-chip" data-paper="${pp}" aria-pressed="${pp === paper}">${pp}${counts[pp] ? `で${counts[pp]}枚` : ''}</button>`).join('')}
@@ -182,7 +184,8 @@ export async function renderPrint(root, { bag, go, isStale }) {
         <div class="guide-card">
           <h3>番号の順に貼る</h3>
           ${ILL_GLUE}
-          <p>紙のすみの番号の順に並べます。<strong>2枚目からは、✂の点線で左(または上)のふちを切ります。</strong>となりの紙のななめ線のところに重ね、<strong>◆</strong>どうしを合わせてテープで貼ります。</p>
+          <p>紙のすみの番号の順に並べます。<strong>1枚目は切りません。</strong></p>
+          <p><strong>2枚目からは、白いふちを点線で切り</strong>、となりの紙の<strong>ななめの線(のりしろ)</strong>に重ねて、<strong>◆</strong>どうしを合わせてテープで貼ります。</p>
           ${pages.length > 1 ? `<div class="page-map-wrap"><div class="page-map" style="grid-template-columns:repeat(${cols}, minmax(44px, 62px))" aria-label="紙の並べ方">${map}</div></div>` : ''}
         </div>
       </div>

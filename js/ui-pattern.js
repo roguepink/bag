@@ -19,7 +19,8 @@ export async function renderPattern(root, { bag, go, isStale }) {
   const look = await currentLook();
   if (isStale()) return;
   const pieces = (typeof bag.pieces === 'function' ? safe(() => bag.pieces(p), []) : []) || [];
-  const noPattern = pieces.length > 0 && pieces.every((pc) => pc && pc.measureOnly);
+  const hp = pr && typeof pr.hasPattern === 'function' ? safe(() => pr.hasPattern(bag, size), null) : null;
+  const noPattern = hp === null ? (pieces.length > 0 && pieces.every((pc) => pc && pc.measureOnly)) : !hp;
   const hasFold = pieces.some((pc) => pc && pc.fold && !pc.measureOnly);
 
   root.innerHTML = `
