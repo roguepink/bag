@@ -106,6 +106,9 @@ Shape3D(型紙係が bag.shape(p) で返す・mm):
 }
 ```
 知らない family が来ても、近い形(boxed など)で出す。
+あれば使う項目(なくてもよい): `strapAt`(持ち手の付け位置 mm・中心から)`zip:'top'|'around'` `bottom:'flat'|'round'`
+`handleMaterial:'self'|'tape'|'leather'|'wood'` `band`(グラニーの口の帯の高さ)`knotShort`(むすびバッグの短い輪の大きさ)
+`show()` は Promise を返す。`snapshot(px, {theta, phi})`。
 
 ### デザイン係(画面)
 画面の流れ: **えらぶ(仲間 → バッグ)→ 見る(3D・大中小・柄)→ 型紙(全体図・用意するもの)→ 印刷 → 作り方**
