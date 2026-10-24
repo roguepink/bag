@@ -57,12 +57,11 @@ export const toteFlat = {
         id: 'body', name: '本体', cut: 1, fabric: 'outer', more: [{ fabric: 'lining', cut: 1 }, { fabric: 'interfacing', cut: 1 }],
         outline: rect(w, h), seam: 10, fold: 'bottom',
         grain: [[w * 0.12, h * 0.2], [w * 0.12, h * 0.7]],
-        labelAt: [w / 2, py + ph + (h - py - ph) * 0.42],
+        labelAt: [w / 2, py + ph / 2],
         marks: [
           ...handleNotches([at + hw / 2, w - at - hw / 2], hw),
           { type: 'text', at: [w / 2, 9], text: '▲持ち手を付ける位置', size: 3.4 },
           placeBox((w - pw) / 2, py, pw, ph, '(表布の前だけ)外ポケット付け位置'),
-          { type: 'notch', at: [0, h / 2] }, { type: 'notch', at: [w, h / 2] },
           { type: 'text', at: [w / 2, h - 34], text: '裏布は、片方のわきに返し口12cm', size: 3 },
           { type: 'text', at: [w / 2, h - 26], text: '接着芯は、細い線(できあがり線)で切る', size: 3 },
           { type: 'text', at: [w / 2, h - 18], text: DIR_NOTE, size: 2.6 },
@@ -378,7 +377,7 @@ export const toteBox = {
         id: 'front', name: '本体(前・後ろ)', cut: 2, fabric: 'outer', more: [{ fabric: 'lining', cut: 2 }, { fabric: 'interfacing', cut: 2 }],
         outline: panel, seam: 10, fold: null,
         grain: [[w * 0.1, h * 0.2], [w * 0.1, h * 0.7]],
-        labelAt: [w / 2, py + ph + (h - py - ph) * 0.5],
+        labelAt: [w / 2, py + ph / 2],
         marks: [
           ...handleNotches([w / 2 - off, w / 2 + off], hw),
           { type: 'text', at: [w / 2, 9], text: '▲持ち手を付ける位置', size: 3.4 },

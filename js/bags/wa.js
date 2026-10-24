@@ -1,62 +1,326 @@
 // wa.js — 和の袋の仲間(型紙係)
+// 計画 data/bags-plan.json の wa 5種類。単位 mm、できあがり線で作る(縫い代は seam で足す)。
+// sizes の w・h・d は「できあがり」の寸法(マチつきは 前の面の幅)。
 import { rect, circle } from '../geom.js';
-import { cmText } from './parts.js';
+import { strapPiece, cmText, r5 } from './parts.js';
 
-// ③ まる底きんちゃく(丸い底・両わきから ひもを引く 両しぼり)
-// 本体2枚は横に並べると一周。底の円のまわり = 本体2枚の下の辺。
-export const kinchakuRound = {
+// ---------- この仲間で使う道具 ----------
+
+// 底の角を四角く切りとった形(つまみマチ)。点の番号は pouch.js と同じ:
+// 0 左上 → 1 右上 → 2 右わきの下 → 3 角 → 4 底の右 → 5 底の左 → 6 角 → 7 左わきの下
+function boxOutline(W, H, c) {
+  return [[0, 0], [W, 0], [W, H - c], [W - c, H - c], [W - c, H], [c, H], [c, H - c], [0, H - c]];
+}
+
+const cord50 = (mm) => Math.ceil(mm / 50) * 50;
+
+// 口の三つ折り(ひも通し)の印。W 幅、casing ひも通しの幅、stop あき止まり(口から)
+function casingMarks(W, casing, stop, { sideDots = true } = {}) {
+  const m = [
+    { type: 'line', pts: [[0, -casing], [W, -casing]], label: '① ここで 1cm 折る' },
+    { type: 'text', at: [W / 2, 6], text: `↑ ② ここで ${cmText(casing)}cm 折る(ひも通し)`, size: 3 },
+  ];
+  if (sideDots) {
+    m.push(
+      { type: 'dot', at: [0, stop], label: 'あき止まり' }, { type: 'dot', at: [W, stop] },
+      { type: 'notch', at: [0, stop] }, { type: 'notch', at: [W, stop] },
+      { type: 'text', at: [W / 2, stop - 7], text: 'わきは 口から あき止まりまで 縫わない', size: 3 },
+    );
+  }
+  return m;
+}
+
+// ---------- ① きほんの巾着 ----------
+// 長方形1枚を 底で わ に折る。両わきを縫って、口を三つ折りにして ひもを通すだけ。
+export const waKinchaku = {
   id: 'wa-kinchaku',
-  name: 'まる底きんちゃく',
+  name: 'きほんの巾着',
   group: 'wa',
-  level: 2,
+  level: 1,
   trend: false,
-  desc: '底がまるい きんちゃく袋。ひもを引くと口がしまります。',
+  desc: 'ひもを引くと口がしまる、いちばん簡単な袋。まっすぐ縫うだけ。',
   sizes: {
-    S: { d: 100, h: 160 },
-    M: { d: 150, h: 220 },
-    L: { d: 200, h: 300 },
+    S: { w: 150, h: 180, d: 0, casing: 15, openStop: 50, cordW: 3 },
+    M: { w: 220, h: 260, d: 0, casing: 20, openStop: 60, cordW: 4 },
+    L: { w: 300, h: 350, d: 0, casing: 25, openStop: 70, cordW: 5 },
   },
-  sizeNote: { S: 'コップや小物に', M: 'お弁当箱が入る', L: '着がえやタオルに' },
-  sizeText: (p) => `底の直径 ${cmText(p.d)}cm × 高さ ${cmText(p.h)}cm`,
+  sizeNote: { S: '小物・お守り・小銭', M: 'コップ・おやつ・下着', L: '着がえ・くつ' },
 
   shape(p) {
-    const cord = cordLen(p);
+    const cord = kinCord(p);
     return {
-      family: 'cylinder', w: p.d, h: p.h, d: p.d, corner: 0,
+      family: 'gathered', w: p.w, h: p.h, d: 0, topW: r5(p.w * 0.35), corner: 0,
       flap: null, closure: 'drawstring',
-      handles: [{ type: 'cord', len: cord, width: 4 }, { type: 'cord', len: cord, width: 4 }],
+      handles: [{ type: 'cord', len: cord, width: p.cordW }, { type: 'cord', len: cord, width: p.cordW }],
       pocket: null,
     };
   },
 
   pieces(p) {
-    const cw = (Math.PI * p.d) / 2;   // 本体1枚の幅 = 底の円の半周
-    const r = p.d / 2;
-    const top = 35;                    // 口の縫い代(1cm 折って、2.5cm のひも通し)
+    const { w, h } = p;
+    return [
+      {
+        id: 'body', name: '本体', cut: 1, fabric: 'outer',
+        outline: rect(w, h), seam: [p.casing + 10, 10, 10, 10], fold: 'bottom',
+        grain: [[w * 0.12, h * 0.3], [w * 0.12, h * 0.8]],
+        labelAt: [w / 2, h * 0.58],
+        marks: [
+          ...casingMarks(w, p.casing, p.openStop),
+          { type: 'notch', at: [w / 2, 0] },
+        ],
+      },
+    ];
+  },
+
+  matches() {
+    return [{ label: '左わき と 右わき', a: { piece: 'body', from: 1, to: 2 }, b: { piece: 'body', from: 3, to: 0 } }];
+  },
+
+  steps(p) {
+    return [
+      '型紙を印刷して貼り合わせ、いちばん外の線で切ります。',
+      '布を半分に折り、折り目(わ)に型紙の「わ」を合わせて 1枚切ります。',
+      'わきの はしを ジグザグ縫いして、ほつれないようにします。',
+      '表を内側にして わで半分に折り、両わきを あき止まりから下まで縫います。',
+      'あき止まりより上の縫い代を 左右に開き、コの字に縫いとめます。',
+      `口を 1cm 折り、さらに ${cmText(p.casing)}cm 折って アイロンをかけ、下のはしを ぐるりと縫います(ひも通し)。`,
+      '表に返します。',
+      `ひも(${cmText(kinCord(p))}cm)を 右から1本、左から1本 ぐるりと通し、はしを結んで できあがりです。`,
+    ];
+  },
+
+  extras(p) {
+    return [`丸ひも(太さ ${p.cordW}mm) ${cmText(kinCord(p))}cm × 2本`, 'ひも通し(安全ピンでも できます)'];
+  },
+};
+// ひも1本: 口まわり(w×2) + 結ぶぶん 200mm
+function kinCord(p) { return cord50(p.w * 2 + 200); }
+
+// ---------- ② あずま袋 ----------
+// 昔ながらの作り: 1:3 の長い布を 3つに分け、左を折って下を、右を折って上を縫う。
+// 長方形だけなので 型紙は印刷せず、布に直接線を引く(measureOnly)。まわりは 5mm+1cm の三つ折り。
+const AZ_HEM = 15;
+export const waAzuma = {
+  id: 'wa-azuma',
+  name: 'あずま袋',
+  group: 'wa',
+  level: 1,
+  trend: true,
+  desc: '長い布を三つに折って、2か所縫うだけ。結んで持てて、たためばエコバッグに。',
+  sizes: {
+    S: { a: 200, w: 200, h: 200, d: 0 },
+    M: { a: 280, w: 280, h: 280, d: 0 },
+    L: { a: 330, w: 330, h: 330, d: 0 },
+  },
+  sizeNote: { S: 'お弁当包み・小物', M: '手ぬぐい1枚で作れる大きさ', L: 'お買いもの・ふろしき代わり' },
+  sizeText: (p) => `布 よこ ${cmText(p.a * 3)}cm × たて ${cmText(p.a)}cm(1:3)を 三つに折る`,
+
+  shape(p) {
+    return {
+      family: 'azuma', w: p.a, h: p.a, d: 0, corner: 0,
+      flap: null, closure: 'tie',
+      handles: [{ type: 'knot', len: 0, width: 0 }],
+      pocket: null,
+    };
+  },
+
+  pieces(p) {
+    const a = p.a, e = AZ_HEM;
+    const W = 3 * a + 2 * e, H = a + 2 * e;
+    const x1 = e + a, x2 = e + 2 * a;
+    return [
+      {
+        id: 'body', name: '本体(長い布)', cut: 1, fabric: 'outer', unit: '枚',
+        // 点: 0 左上 → 1 区切り1 → 2 区切り2 → 3 右上 → 4 右下 → 5 区切り2 → 6 区切り1 → 7 左下
+        outline: [[0, 0], [x1, 0], [x2, 0], [W, 0], [W, H], [x2, H], [x1, H], [0, H]],
+        seam: 0, fold: null,
+        grain: [[W * 0.1, H * 0.3], [W * 0.1, H * 0.7]],
+        marks: [
+          { type: 'line', pts: [[x1, 0], [x1, H]], label: '区切り' },
+          { type: 'line', pts: [[x2, 0], [x2, H]], label: '区切り' },
+        ],
+        measureOnly: true,
+        note: `まわりを 5mm 折り、さらに 1cm 折って縫う(三つ折り)と ${cmText(3 * a)}cm × ${cmText(a)}cm。よこを はしから ${cmText(a)}cm ずつ 3つに分ける印をつけます。`,
+      },
+    ];
+  },
+
+  matches() {
+    return [
+      { label: '右の上 と 左の上(2つめに縫う所)', a: { piece: 'body', from: 2, to: 3 }, b: { piece: 'body', from: 0, to: 1 } },
+      { label: '左の下 と まん中の下(はじめに縫う所。はしの三つ折り 1.5cm をのぞくと同じ)', a: { piece: 'body', from: 6, to: 7 }, b: { piece: 'body', from: 5, to: 6 }, tol: AZ_HEM + 0.5 },
+    ];
+  },
+
+  steps(p) {
+    const a = p.a;
+    return [
+      `布を よこ ${cmText(3 * a + 2 * AZ_HEM)}cm × たて ${cmText(a + 2 * AZ_HEM)}cm に切ります(型紙は使いません。布に定規で線を引きます)。`,
+      'まわりを 5mm 折り、さらに 1cm 折って縫います(三つ折り)。手ぬぐいなら、耳のある長い辺は そのままでよい。',
+      `布を横長に置き、よこを ${cmText(a)}cm ずつ 3つ(左・まん中・右)に分ける印をつけます。`,
+      '表を内側にして、左の1つ分を まん中に重ね、下の辺を 2枚いっしょに縫います。',
+      '右の1つ分を その上に重ね、上の辺を縫います。いちばん下の布は いっしょに縫わないよう よけます。',
+      '縫い始めと縫い終わりは、かえし縫いをして丈夫にします。',
+      '表に返すと 袋になります。とがった2つの角を結んで 持ち手にしたら できあがりです。',
+    ];
+  },
+
+  extras(p) {
+    return p.key === 'M' ? ['手ぬぐい 1枚(34cm×90cm)でも作れます(少し小さめになります)'] : ['なし(糸だけ)'];
+  },
+};
+
+// ---------- ③ お弁当袋(マチつき巾着) ----------
+export const waBento = {
+  id: 'wa-bento',
+  name: 'お弁当袋(マチつき巾着)',
+  group: 'wa',
+  level: 1,
+  trend: false,
+  desc: '底にマチがある巾着。お弁当箱が平らに入ります。',
+  sizes: {
+    S: { w: 180, h: 160, d: 100, casing: 20, openStop: 50, cordW: 4 },
+    M: { w: 220, h: 200, d: 120, casing: 20, openStop: 60, cordW: 4 },
+    L: { w: 260, h: 220, d: 140, casing: 25, openStop: 60, cordW: 5 },
+  },
+  sizeNote: { S: '小さいお弁当箱', M: 'ふつうのお弁当箱とおはし', L: '2段のお弁当箱・水筒' },
+
+  shape(p) {
+    const cord = bentoCord(p);
+    return {
+      family: 'gathered', w: p.w, h: p.h, d: p.d, topW: r5(p.w * 0.4), corner: 0,
+      flap: null, closure: 'drawstring', bottom: 'flat',
+      handles: [{ type: 'cord', len: cord, width: p.cordW }, { type: 'cord', len: cord, width: p.cordW }],
+      pocket: null,
+    };
+  },
+
+  pieces(p) {
+    const W = p.w + p.d, c = p.d / 2, H = p.h + c, cx = W / 2;
+    const HL = H - p.casing;
+    return [
+      {
+        id: 'body', name: '本体', cut: 1, fabric: 'outer',
+        outline: boxOutline(W, H, c), seam: [p.casing + 10, 10, 10, 10, 10, 10, 10, 10], fold: 'bottom',
+        grain: [[W * 0.1, H * 0.3], [W * 0.1, H * 0.7]],
+        labelAt: [cx, H * 0.55],
+        marks: [
+          ...casingMarks(W, p.casing, p.openStop),
+          { type: 'notch', at: [cx, 0] },
+          { type: 'text', at: [W - c / 2, H - c / 2 + 1], text: 'マチ', size: 4 },
+          { type: 'text', at: [c / 2, H - c / 2 + 1], text: 'マチ', size: 4 },
+        ],
+      },
+      {
+        id: 'lining', name: '裏布(つけるなら)', cut: 1, fabric: 'lining',
+        outline: boxOutline(W, HL, c), seam: 10, fold: 'bottom',
+        grain: [[W * 0.1, HL * 0.3], [W * 0.1, HL * 0.7]],
+        labelAt: [cx, HL * 0.55],
+        note: 'なくてもよい。つけるとじょうぶで、ラミネート布なら よごれも ふきやすい。',
+        marks: [
+          { type: 'notch', at: [cx, 0] },
+          { type: 'text', at: [cx, 8], text: '↑ 口(表布の三つ折りの中に はさむ)', size: 3 },
+          { type: 'text', at: [W - c / 2, HL - c / 2 + 1], text: 'マチ', size: 4 },
+          { type: 'text', at: [c / 2, HL - c / 2 + 1], text: 'マチ', size: 4 },
+        ],
+      },
+    ];
+  },
+
+  matches() {
+    return [
+      { label: '左わき と 右わき', a: { piece: 'body', from: 1, to: 2 }, b: { piece: 'body', from: 7, to: 0 } },
+      { label: 'マチの角(よこ2つ と たて)', a: { piece: 'body', from: 2, to: 3, times: 2 }, b: { piece: 'body', from: 3, to: 4, times: 2 } },
+      { label: '表布の口 と 裏布の口', a: { piece: 'body', from: 0, to: 1 }, b: { piece: 'lining', from: 0, to: 1 } },
+      { label: '裏布のマチの角', a: { piece: 'lining', from: 2, to: 3, times: 2 }, b: { piece: 'lining', from: 3, to: 4, times: 2 } },
+    ];
+  },
+
+  steps(p) {
+    return [
+      '型紙を印刷して貼り合わせ、いちばん外の線で切ります。',
+      '布を半分に折った「わ」に型紙を合わせ、本体を1枚切ります(裏布をつけるなら 裏布も1枚)。',
+      'わきの はしを ジグザグ縫いして、ほつれないようにします。',
+      '表を内側にして わで折り、両わきを あき止まりから下まで縫います。',
+      'あき止まりより上の縫い代を 左右に開き、コの字に縫いとめます。',
+      `底の角の四角く切った所を広げ、わきの縫い目と底の折り目を合わせて まっすぐ縫います(マチ ${cmText(p.d)}cm)。`,
+      '裏布をつけるときは、裏布も両わきと底の角を縫います。表袋を表に返して、裏袋(裏を外のまま)を中に入れます。',
+      `口を 1cm 折り、さらに ${cmText(p.casing)}cm 折って(裏布の口も はさむ)、下のはしを ぐるりと縫います(ひも通し)。`,
+      '裏布なしのときは、ここで表に返します。',
+      `ひも(${cmText(bentoCord(p))}cm)を 左右から1本ずつ通し、はしを結んで できあがりです。`,
+    ];
+  },
+
+  extras(p) {
+    return [`丸ひも(太さ ${p.cordW}mm) ${cmText(bentoCord(p))}cm × 2本`, 'ひも通し(安全ピンでも できます)'];
+  },
+};
+// マチがあるので 口まわりは (w + d) × 2
+function bentoCord(p) { return cord50((p.w + p.d) * 2 + 200); }
+
+// ---------- ④ 信玄袋 ----------
+// 丸い底 + 本体2枚(両わきに あき → ひもを左右から通せる)。裏布つき。底に厚紙の底板。
+export const waShingen = {
+  id: 'wa-shingen',
+  name: '信玄袋',
+  group: 'wa',
+  level: 2,
+  trend: false,
+  desc: '丸い底の、和装にも合う手さげ袋。ひもで口をしぼります。',
+  sizes: {
+    S: { w: 190, h: 200, d: 120, bottomDia: 120, casing: 20, openStop: 50, handleLen: 250, cordW: 5 },
+    M: { w: 240, h: 240, d: 150, bottomDia: 150, casing: 20, openStop: 60, handleLen: 300, cordW: 5 },
+    L: { w: 280, h: 280, d: 180, bottomDia: 180, casing: 25, openStop: 70, handleLen: 350, cordW: 6 },
+  },
+  sizeNote: { S: 'お財布とハンカチ(着物のときに)', M: 'お茶会・お稽古の小物', L: 'ふだんの手さげに' },
+  sizeText: (p) => `底の直径 ${cmText(p.bottomDia)}cm × 高さ ${cmText(p.h)}cm(平らに置くと よこ ${cmText(p.w)}cm)`,
+
+  shape(p) {
+    const cord = shingenCord(p);
+    return {
+      family: 'cylinder', w: p.bottomDia, h: p.h, d: p.bottomDia, topW: r5(p.w * 0.4), corner: 0,
+      flap: null, closure: 'drawstring', bottom: 'round',
+      handles: [{ type: 'cord', len: cord, width: p.cordW }, { type: 'cord', len: cord, width: p.cordW }],
+      pocket: null,
+    };
+  },
+
+  pieces(p) {
+    const D = p.bottomDia, r = D / 2;
+    const cw = (Math.PI * D) / 2;            // 本体1枚の幅 = 底の円の半周
+    const hl = p.h - p.casing;               // 裏布の高さ(口の三つ折りの中に入る)
     return [
       {
         id: 'body', name: '本体', cut: 2, fabric: 'outer',
-        outline: rect(cw, p.h), seam: [top, 10, 10, 10], fold: null,
-        grain: [[cw * 0.15, p.h * 0.3], [cw * 0.15, p.h * 0.8]],
-        labelAt: [cw / 2, p.h * 0.6],
+        outline: rect(cw, p.h), seam: [p.casing + 10, 10, 10, 10], fold: null,
+        grain: [[cw * 0.12, p.h * 0.3], [cw * 0.12, p.h * 0.8]],
+        labelAt: [cw / 2, p.h * 0.58],
         marks: [
-          { type: 'line', pts: [[0, -25], [cw, -25]], label: '① ここで 1cm 折る' },
-          { type: 'text', at: [cw / 2, 6], text: '↑ ② ここで 2.5cm 折る(口)', size: 3 },
-          { type: 'dot', at: [0, 30], label: 'あき止まり' },
-          { type: 'dot', at: [cw, 30] },
-          { type: 'text', at: [cw / 2, 18], text: 'わきは 口から あき止まりまで 縫わない', size: 3 },
+          ...casingMarks(cw, p.casing, p.openStop),
           { type: 'notch', at: [cw / 2, p.h] },
           { type: 'text', at: [cw / 2, p.h - 8], text: '合い印を 底の印に合わせる', size: 3 },
         ],
       },
       {
-        id: 'bottom', name: '底', cut: 1, fabric: 'outer',
+        id: 'lining', name: '裏布(本体)', cut: 2, fabric: 'lining',
+        outline: rect(cw, hl), seam: 10, fold: null,
+        grain: [[cw * 0.12, hl * 0.3], [cw * 0.12, hl * 0.8]],
+        labelAt: [cw / 2, hl * 0.55],
+        marks: [
+          { type: 'text', at: [cw / 2, 8], text: '↑ 口(表布の三つ折りの中に はさむ)', size: 3 },
+          { type: 'notch', at: [cw / 2, hl] },
+        ],
+      },
+      {
+        id: 'bottom', name: '底', cut: 1, fabric: 'accent', more: [{ fabric: 'lining', cut: 1 }],
         outline: circle(r, r, r, 96), seam: 10, fold: null,
-        grain: [[r, r * 0.25], [r, r * 0.6]],
-        labelAt: [r, r * 1.15],
+        grain: [[r, r * 0.2], [r, r * 0.55]],
+        labelAt: [r, r * 1.12],
         marks: [
           { type: 'notch', at: [2 * r, r] }, { type: 'notch', at: [r, 2 * r] },
           { type: 'notch', at: [0, r] }, { type: 'notch', at: [r, 0] },
+          { type: 'line', closed: true, pts: circle(r, r, r - 2, 72) },
+          { type: 'text', at: [r, r * 1.62], text: '点線 = 底板(厚紙)を切る線', size: 3 },
         ],
       },
     ];
@@ -65,31 +329,138 @@ export const kinchakuRound = {
   matches() {
     return [
       { label: '底の円のまわり と 本体2枚の下の辺', a: { piece: 'body', from: 2, to: 3, times: 2 }, b: { piece: 'bottom' }, tol: 2 },
+      { label: '底の円のまわり と 裏布2枚の下の辺', a: { piece: 'lining', from: 2, to: 3, times: 2 }, b: { piece: 'bottom' }, tol: 2 },
       { label: '左わき と 右わき', a: { piece: 'body', from: 1, to: 2 }, b: { piece: 'body', from: 3, to: 0 } },
+      { label: '表布の口 と 裏布の口', a: { piece: 'body', from: 0, to: 1 }, b: { piece: 'lining', from: 0, to: 1 } },
     ];
   },
 
   steps(p) {
     return [
       '型紙を印刷して貼り合わせ、いちばん外の線で切ります。',
-      '本体を2枚、底を1枚 切ります。',
-      '布のはしを ぐるりとジグザグ縫いして、ほつれないようにします。',
-      '本体2枚を 表どうしを内側に重ね、両わきを「あき止まり」から下まで縫います。',
-      'わきの縫い代を左右に開き、あきのまわりを コの字に縫いとめます。',
+      '表布で本体2枚、配色布で底1枚を切ります。裏布で 裏布(本体)2枚と底1枚を切ります。厚紙を 底の点線で切ります。',
+      '表布の本体2枚を表どうしで重ね、両わきを あき止まりから下まで縫います。あき止まりより上は 縫い代を開いて コの字に縫います。',
       '本体の下の縫い代に、2cm おきに 5mm の切りこみを入れます。',
-      '底と本体を 合い印で合わせて待ち針でとめ、ぐるりと縫います。',
-      '口を 1cm 折り、さらに 2.5cm 折って、下のはしを縫います(ひも通し)。',
-      '表に返します。',
-      `ひも(${cmText(cordLen(p))}cm)を 左右から1本ずつ通して、はしを結んで できあがりです。`,
+      '底と本体を、4つの合い印(わきの縫い目も合い印です)を合わせて 待ち針でとめ、ぐるりと縫います。',
+      '裏布の本体と底も、同じように縫います(わきは 上から下まで縫ってよい)。',
+      '表袋を表に返し、底に 厚紙の底板を入れます。',
+      '裏袋を 裏を外にしたまま 表袋の中に入れ、底を合わせます。',
+      `口を 1cm 折り、さらに ${cmText(p.casing)}cm 折って 裏布の口をはさみ、下のはしを ぐるりと縫います(ひも通し)。`,
+      `ひも(${cmText(shingenCord(p))}cm)を 左右から1本ずつ通し、はしを結んで 持ち手にしたら できあがりです。`,
     ];
   },
 
   extras(p) {
-    return [`丸ひも(太さ 3〜4mm) ${cmText(cordLen(p))}cm × 2本`, 'ひも通し(安全ピンでも できます)'];
+    return [
+      `丸ひも(太さ ${p.cordW}mm) ${cmText(shingenCord(p))}cm × 2本`,
+      `厚紙(底板) 直径 ${cmText(p.bottomDia - 4)}cm 1枚(型紙の底の点線で切る)`,
+      'ひも通し(安全ピンでも できます)',
+    ];
   },
 };
+// ひも1本: 口まわり(π×直径) + 手さげぶん + 結ぶぶん 50mm
+function shingenCord(p) { return cord50(Math.PI * p.bottomDia + p.handleLen + 50); }
 
-// ひも1本の長さ: 口のまわり + 結ぶぶん
-function cordLen(p) { return Math.round((Math.PI * p.d + 300) / 50) * 50; }
+// ---------- ⑤ 巾着トート ----------
+// まちつきトートの口に、巾着(口布の輪)をはさんで縫う。持ち手2本・裏布つき。
+export const waBucket = {
+  id: 'wa-bucket',
+  name: '巾着トート',
+  group: 'wa',
+  level: 2,
+  trend: true,
+  desc: '持ち手のあるトートの口に、巾着がついた袋。中身が見えず、こぼれません。',
+  sizes: {
+    S: { w: 240, h: 200, d: 100, kinH: 120, handleLen: 300, handleW: 25, casing: 20, cordW: 4 },
+    M: { w: 300, h: 260, d: 120, kinH: 150, handleLen: 400, handleW: 25, casing: 20, cordW: 4 },
+    L: { w: 360, h: 300, d: 150, kinH: 180, handleLen: 500, handleW: 30, casing: 25, cordW: 5 },
+  },
+  sizeNote: { S: 'お弁当・ペットボトル', M: 'お散歩・ちょっとそこまで', L: '旅行のサブバッグに' },
 
-export const WA_BAGS = [kinchakuRound];
+  shape(p) {
+    const at = strapAt(p);
+    return {
+      family: 'boxed', w: p.w, h: p.h, d: p.d, corner: 0,
+      flap: null, closure: 'drawstring', innerBagH: p.kinH, strapAt: at,
+      handles: [
+        { type: 'loop', len: p.handleLen, width: p.handleW },
+        { type: 'loop', len: p.handleLen, width: p.handleW },
+      ],
+      pocket: null,
+    };
+  },
+
+  pieces(p) {
+    const W = p.w + p.d, c = p.d / 2, H = p.h + c, cx = W / 2;
+    const at = strapAt(p), hw = p.handleW;
+    const stop = p.casing + 30;              // 巾着の あき止まり(口から)
+    return [
+      {
+        id: 'body', name: '本体', cut: 1, fabric: 'outer', more: [{ fabric: 'lining', cut: 1 }],
+        outline: boxOutline(W, H, c), seam: 10, fold: 'bottom',
+        grain: [[W * 0.1, H * 0.25], [W * 0.1, H * 0.7]],
+        labelAt: [cx, H * 0.55],
+        marks: [
+          { type: 'notch', at: [cx - at - hw / 2, 0] }, { type: 'notch', at: [cx - at + hw / 2, 0] },
+          { type: 'notch', at: [cx + at - hw / 2, 0] }, { type: 'notch', at: [cx + at + hw / 2, 0] },
+          { type: 'text', at: [cx, 9], text: '▲ 持ち手を付ける位置', size: 3.2 },
+          { type: 'notch', at: [cx, 0] },
+          { type: 'text', at: [W - c / 2, H - c / 2 + 1], text: 'マチ', size: 4 },
+          { type: 'text', at: [c / 2, H - c / 2 + 1], text: 'マチ', size: 4 },
+          { type: 'text', at: [cx, H - c - 9], text: '裏布は わきに 返し口 12cm を残す', size: 3.2 },
+        ],
+      },
+      {
+        id: 'kin', name: '巾着(口布)', cut: 2, fabric: 'lining',
+        outline: rect(W, p.kinH), seam: [p.casing + 10, 10, 10, 10], fold: null,
+        grain: [[W * 0.1, p.kinH * 0.35], [W * 0.1, p.kinH * 0.85]],
+        labelAt: [cx, p.kinH * 0.62],
+        marks: [
+          ...casingMarks(W, p.casing, stop),
+          { type: 'notch', at: [cx, p.kinH] },
+          { type: 'text', at: [cx, p.kinH - 7], text: '↓ 下の辺は 本体の口に はさんで縫う', size: 3 },
+        ],
+      },
+      strapPiece({ finLen: p.handleLen, finW: hw, tuck: 30 }),
+    ];
+  },
+
+  matches() {
+    return [
+      { label: '巾着2枚の下 と 本体の口(前と後ろ)', a: { piece: 'kin', from: 2, to: 3, times: 2 }, b: { piece: 'body', from: 0, to: 1, times: 2 } },
+      { label: '本体の 左わき と 右わき', a: { piece: 'body', from: 1, to: 2 }, b: { piece: 'body', from: 7, to: 0 } },
+      { label: 'マチの角(よこ2つ と たて)', a: { piece: 'body', from: 2, to: 3, times: 2 }, b: { piece: 'body', from: 3, to: 4, times: 2 } },
+      { label: '巾着の 左わき と 右わき', a: { piece: 'kin', from: 1, to: 2 }, b: { piece: 'kin', from: 3, to: 0 } },
+    ];
+  },
+
+  steps(p) {
+    return [
+      '型紙を印刷して貼り合わせ、いちばん外の線で切ります。',
+      '本体を 表布と裏布で1枚ずつ(わ)、巾着の布を2枚切ります。持ち手は 布に線を引いて2本切ります。',
+      `持ち手を四つ折りにして、両はしを縫います(できあがり幅 ${cmText(p.handleW)}cm)。`,
+      '巾着の布2枚を表どうしで重ね、両わきを あき止まりから下まで縫います。上は縫い代を開いて コの字に縫います。',
+      `巾着の口を 1cm 折り、さらに ${cmText(p.casing)}cm 折って縫います(ひも通し)。裏を外にしたまま 置いておきます。`,
+      `本体の表布を 表を内側にして わで折り、両わきを縫います。底の角を広げて まっすぐ縫い、マチ(${cmText(p.d)}cm)を作ります。`,
+      '裏布も同じに縫います。わきに 返し口 12cm を残します。',
+      '表袋を表に返し、口に持ち手を ▲の印で仮どめします。その上に 巾着の輪を 口を下に向けて かぶせ(表どうしが合う)、仮どめします。',
+      '表袋を 裏袋の中に入れ(表どうしが内側)、口をぐるりと縫います。',
+      '返し口から表に返し、返し口を縫いとじます。口のまわりを縫いおさえます。',
+      `巾着に ひも(${cmText(bucketCord(p))}cm)を 左右から1本ずつ通し、はしを結んで できあがりです。`,
+    ];
+  },
+
+  extras(p) {
+    return [
+      `丸ひも(太さ ${p.cordW}mm) ${cmText(bucketCord(p))}cm × 2本`,
+      'ひもどめ(コードストッパー) 1〜2個(あれば)',
+      'ひも通し(安全ピンでも できます)',
+    ];
+  },
+};
+// 持ち手の中心の位置(口のまん中から)
+function strapAt(p) { return r5(p.w * 0.22); }
+// 巾着の口まわり = (w + d) × 2
+function bucketCord(p) { return cord50((p.w + p.d) * 2 + 200); }
+
+export const WA_BAGS = [waKinchaku, waAzuma, waBento, waShingen, waBucket];
