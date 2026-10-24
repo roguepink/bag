@@ -12,7 +12,7 @@ export async function renderSteps(root, { bag, go }) {
   root.innerHTML = `
     <div class="page-head" style="margin-bottom:14px">
       <p class="kicker">作り方</p>
-      <h1>${esc(bag.name)}<span class="muted" style="font-size:.6em">(${SIZE_NAME[size]})</span></h1>
+      <h1>${esc(bag.name)} <span class="size-tag">${SIZE_NAME[size]}</span></h1>
     </div>
     <div id="step-body"></div>
     ${steps.length ? `<details class="all-steps"><summary>手順をぜんぶ見る</summary>

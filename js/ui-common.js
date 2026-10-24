@@ -74,6 +74,10 @@ export function dimText(bag, sizeKey) {
   if (s.d) parts.push(`マチ${cm(s.d)}cm`);
   return parts.join(' × ');
 }
+/** 言葉の途中で折り返さない版(HTML) */
+export function dimHTML(bag, sizeKey) {
+  return dimText(bag, sizeKey).split(' × ').map((t) => `<span class="nw">${esc(t)}</span>`).join(' × ');
+}
 export { cm };
 
 export const LEVEL = {
@@ -97,9 +101,16 @@ export async function currentLook() {
   const C = (fab && fab.COLORWAYS) || [];
   let fabric = store.get('fabric');
   let colorway = store.get('colorway');
-  if (!F.find((f) => f.id === fabric)) fabric = F[0] ? F[0].id : null;
-  if (!C.find((c) => c.id === colorway)) colorway = C[0] ? C[0].id : null;
+  if (!F.find((f) => f.id === fabric)) fabric = defaultId(F, DEFAULT_FABRIC);
+  if (!C.find((c) => c.id === colorway)) colorway = defaultId(C, DEFAULT_COLORWAY);
   return lookOf(fabric, colorway, C);
+}
+// はじめて開いたときの柄と色(落ち着いた こん の むじ)
+export const DEFAULT_FABRIC = ['plain', 'canvas', 'linen'];
+export const DEFAULT_COLORWAY = ['navy', 'ai', 'indigo'];
+export function defaultId(list, prefer) {
+  for (const id of prefer) if (list.find((x) => x.id === id)) return id;
+  return list[0] ? list[0].id : null;
 }
 export function lookOf(fabric, colorway, COLORWAYS = []) {
   const cw = COLORWAYS.find((c) => c.id === colorway);

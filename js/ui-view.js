@@ -1,7 +1,7 @@
 // 見る: 3D を大きく・大中小・柄と色
 import {
-  esc, h, store, loadViewer, loadFabric, paramsOf, pickSize, sizeKeysOf, SIZE_NAME, dimText,
-  levelBadge, trendBadge, lookOf, bagIcon, FINGER_SVG, safe,
+  esc, h, store, loadViewer, loadFabric, paramsOf, pickSize, sizeKeysOf, SIZE_NAME, dimText, dimHTML,
+  levelBadge, trendBadge, lookOf, bagIcon, FINGER_SVG, safe, defaultId, DEFAULT_FABRIC, DEFAULT_COLORWAY,
 } from './ui-common.js';
 
 export async function renderView(root, { bag, go, isStale }) {
@@ -11,8 +11,8 @@ export async function renderView(root, { bag, go, isStale }) {
   if (isStale()) return;
   const FABRICS = (fab && fab.FABRICS) || [];
   const COLORWAYS = (fab && fab.COLORWAYS) || [];
-  let fabric = FABRICS.find((f) => f.id === store.get('fabric')) ? store.get('fabric') : (FABRICS[0] && FABRICS[0].id);
-  let colorway = COLORWAYS.find((c) => c.id === store.get('colorway')) ? store.get('colorway') : (COLORWAYS[0] && COLORWAYS[0].id);
+  let fabric = FABRICS.find((f) => f.id === store.get('fabric')) ? store.get('fabric') : defaultId(FABRICS, DEFAULT_FABRIC);
+  let colorway = COLORWAYS.find((c) => c.id === store.get('colorway')) ? store.get('colorway') : defaultId(COLORWAYS, DEFAULT_COLORWAY);
 
   root.innerHTML = `
     <div class="view-head">
@@ -95,7 +95,7 @@ export async function renderView(root, { bag, go, isStale }) {
       sizesEl.appendChild(b);
     }
     const note = bag.sizeNote && bag.sizeNote[size];
-    info.innerHTML = `<div class="dim">できあがり ${esc(dimText(bag, size))}</div>${note ? `<div class="note">${esc(note)}</div>` : ''}`;
+    info.innerHTML = `<div class="dim">できあがり ${dimHTML(bag, size)}</div>${note ? `<div class="note">${esc(note)}</div>` : ''}`;
   };
   drawSizes();
 

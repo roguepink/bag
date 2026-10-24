@@ -11,7 +11,7 @@ const ILL_PRINTER = `<svg class="ill" viewBox="0 0 320 180" role="img" aria-labe
   <text x="90" y="105" font-size="16" font-weight="700" fill="#213b5c">実際のサイズ(100%)</text>
   <circle cx="74" cy="138" r="8" fill="#fff" stroke="#b5aa98" stroke-width="2"/>
   <text x="90" y="144" font-size="15" fill="#8a8073">用紙に合わせる</text>
-  <path d="M84 132l150 14" stroke="#b0453a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M226 130l14 14M240 130l-14 14" stroke="#b0453a" stroke-width="3.5" stroke-linecap="round"/>
   <path d="M276 92l18-10M276 104h22M276 116l18 10" stroke="#e0a43a" stroke-width="4" stroke-linecap="round"/>
 </svg>`;
 
@@ -88,8 +88,8 @@ export async function renderPrint(root, { bag, go, isStale }) {
       <button class="btn btn-primary btn-block" type="button" id="print-all" ${pages.length ? '' : 'disabled'}>
         <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
         ${pages.length ? `${pages.length}枚 印刷する` : '印刷する'}</button>
-      ${pages.length > 1 ? `<button class="btn btn-block" type="button" id="print-one">ためしに1枚目だけ印刷する</button>` : ''}
-      <button class="btn btn-block" type="button" id="to-steps" style="border-style:dashed">印刷できたら、作り方へ<span class="arrow" aria-hidden="true">›</span></button>
+      ${pages.length > 1 ? `<button class="btn btn-block" type="button" id="print-one">ためしに1枚だけ印刷</button>` : ''}
+      <button class="btn btn-block" type="button" id="to-steps" style="border-style:dashed">作り方へすすむ<span class="arrow" aria-hidden="true">›</span></button>
     </div>`;
 
   const area = document.getElementById('print-area');

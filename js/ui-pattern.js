@@ -1,6 +1,6 @@
 // 型紙: 全体図(拡大できる)・用意するもの・紙の枚数
 import {
-  esc, h, store, loadPrint, paramsOf, pickSize, SIZE_NAME, dimText, cm, safe, currentLook,
+  esc, h, store, loadPrint, paramsOf, pickSize, SIZE_NAME, dimText, dimHTML, cm, safe, currentLook,
 } from './ui-common.js';
 
 const FABRIC_NAME = { outer: '表布', lining: '裏布', interfacing: '接着芯', accent: '配色布' };
@@ -15,8 +15,8 @@ export async function renderPattern(root, { bag, go, isStale }) {
   root.innerHTML = `
     <div class="page-head">
       <p class="kicker">型紙</p>
-      <h1>${esc(bag.name)}<span class="muted" style="font-size:.6em">(${SIZE_NAME[size]})</span></h1>
-      <p class="lead">できあがり ${esc(dimText(bag, size))}</p>
+      <h1>${esc(bag.name)} <span class="size-tag">${SIZE_NAME[size]}</span></h1>
+      <p class="lead">できあがり ${dimHTML(bag, size)}</p>
     </div>
     <button class="overview" type="button" id="ov" aria-label="型紙の全体図。押すと大きく見られます">
       <div class="svgbox" id="ov-box"></div>
