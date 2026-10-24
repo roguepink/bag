@@ -1,5 +1,5 @@
 // オフラインで使えるようにする(js を足したら FILES に足して VERSION を上げる)
-const VERSION = 'bag-v1';
+const VERSION = 'bag-v2';
 const FILES = [
   './',
   './index.html',
@@ -28,6 +28,9 @@ const FILES = [
   './js/bags/pouch.js',
   './js/bags/tote.js',
   './js/bags/wa.js',
+  './js/bags/shoulder.js',
+  './js/bags/backpack.js',
+  './js/bags/outing.js',
   './js/viewer3d-bag.js',
 ];
 
