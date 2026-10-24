@@ -316,7 +316,7 @@ export function cleanLoops(poly, sgn = 1) {
       for (let j = i + 2; j < n; j++) {
         if (i === 0 && j === n - 1) continue; // となり
         const b1 = pts[j], b2 = pts[(j + 1) % n];
-        const X = segIntersect(a1, a2, b1, b2);
+        const X = segIntersect(a1, a2, b1, b2) || collinearTouch(a1, a2, b1, b2);
         if (!X) continue;
         const loop = [X, ...pts.slice(i + 1, j + 1)];
         const rest = [X, ...pts.slice(j + 1), ...pts.slice(0, i + 1)];
@@ -333,6 +333,20 @@ export function cleanLoops(poly, sgn = 1) {
     break;
   }
   return pts;
+}
+
+// 同じ直線の上で重なっている2本の線分 → 重なりの1点(なければ null)
+function collinearTouch(a1, a2, b1, b2) {
+  const dx = a2[0] - a1[0], dy = a2[1] - a1[1];
+  const L = Math.hypot(dx, dy);
+  if (L < 1e-9) return null;
+  const off = (p) => Math.abs((p[0] - a1[0]) * dy - (p[1] - a1[1]) * dx) / L;
+  if (off(b1) > 1e-6 || off(b2) > 1e-6) return null;
+  const t = (p) => ((p[0] - a1[0]) * dx + (p[1] - a1[1]) * dy) / (L * L);
+  const tb1 = t(b1), tb2 = t(b2);
+  const lo = Math.max(0, Math.min(tb1, tb2)), hi = Math.min(1, Math.max(tb1, tb2));
+  if (hi - lo < 1e-6) return null; // 点で触れるだけ
+  return tb1 > 1e-6 && tb1 < 1 - 1e-6 ? [b1[0], b1[1]] : [a1[0] + dx * lo, a1[1] + dy * lo];
 }
 
 // 線分の交わり(はしは除く)。なければ null
