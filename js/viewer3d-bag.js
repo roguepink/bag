@@ -361,6 +361,10 @@ function familyConfig(S) {
   if (cfg.closure === 'zip' || cfg.closure === 'frame') cfg.closedTop = fam !== 'gathered';
   if (cfg.closedTop) { cfg.dent = 0; cfg.sag = 0; cfg.topStitch = false; }
   if (innerBag) { cfg.dent = 0; cfg.sag = 0; }
+  // レジ袋型: 口が U 字に切れて、両わきがそのまま持ち手になる
+  if (S.handleCut && !cfg.closedTop) {
+    cfg.handleCut = true; cfg.sag = clamp(h * 0.22, 35, 120); cfg.dent = 0.2; cfg.topStitch = true;
+  }
 
   if (S.bottom === 'round') {
     const base = cfg.prof, rb = Math.min(h * 0.25, W * 0.6);
@@ -463,6 +467,7 @@ export function buildBag(S, M) {
   for (const hd0 of hl) {
     let hd = hd0;
     if (cfg.fam === 'azuma' || hd.type === 'knot') continue;
+    if (cfg.handleCut && (hd.type === 'loop' || hd.type === 'shoulder')) continue;
     if (cfg.fam === 'knot' && hd.type === 'loop') continue;
     if (cfg.cordHandles && hd.type === 'cord') continue;              // 巾着のひも = 口のひもで描く
     if (cfg.fam === 'backpack' && hd.type === 'loop') {               // リュックの手さげ = 上の小さな輪
@@ -478,6 +483,7 @@ export function buildBag(S, M) {
     buildHandle(S_, hd);
   }
   if (cfg.innerBag) buildInnerBag(S_);
+  if (cfg.handleCut) buildCutHandles(S_, hl.find(x => x.type === 'loop' || x.type === 'shoulder') || {});
   cfg.viewTheta = cfg.knapsack ? -2.3 : cfg.fam === 'backpack' ? -1.0 : -0.55;
   return { group, cfg };
 }
@@ -824,6 +830,29 @@ function buildHandle(S_, hd) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(7, 1.8, 8, 18), M.metal);
     ring.position.copy(A).add(V(2, 0, 0)); ring.rotation.y = PI / 2; group.add(ring);
     return;
+  }
+}
+
+// レジ袋型の持ち手: 両わきの布が上へのびて、前からうしろへ輪になる
+function buildCutHandles(S_, hd) {
+  const { cfg, body, h, add, M } = S_;
+  const top = cfg.prof(1), hw = clamp(num(hd.width, top.a * 0.3), 25, top.a * 0.6);
+  const xs = top.a - hw / 2 - 1, len = clamp(num(hd.len, 360), 150, 1500);
+  for (const sx of [-1, 1]) {
+    const x = sx * xs, sF = body.faceS(x, 1, 1), sB = body.faceS(x, 1, -1);
+    const pF = body.point(1, sF), pB = body.point(1, sB);
+    const zs = (pF.z - pB.z) / 2, y0 = (pF.y + pB.y) / 2, zc = (pF.z + pB.z) / 2;
+    const R = clamp(riseFor(Math.max(zs, 10), Math.max(len - 20, 80)), 40, Math.max(h * 0.9, 160));
+    const pts = [body.point(0.93, sF).addScaledVector(body.normal(0.93, sF), 0.2), pF.clone()];
+    for (let i = 1; i < 16; i++) {
+      const th = PI * i / 16;
+      pts.push(V(x * (1 - 0.06 * Math.sin(th)), y0 + R * Math.sin(th), zc + zs * Math.cos(th) * (1 + 0.15 * Math.sin(th))));
+    }
+    pts.push(pB.clone(), body.point(0.93, sB).addScaledVector(body.normal(0.93, sB), 0.2));
+    // 付け根は広く(本体の幅のまま)、上は手で持つ細さ
+    const st = strapGeometry(pts, { width: (u) => lerp(hw, hw * 0.55, Math.sin(PI * clamp((u - 0.06) / 0.88, 0, 1)) ** 0.6), thick: 2.2, hint: V(1, 0, 0), mode: 'width' });
+    add(st.geo, M.outerD);
+    S_.line(st.edges[0], true, M.stitch); S_.line(st.edges[1], true, M.stitch);
   }
 }
 

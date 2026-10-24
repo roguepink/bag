@@ -1,7 +1,7 @@
 // 3D係: バッグを 3D で見せる。
 // createViewer(containerEl) => { show(shape, look), setAutoRotate(bool), resize(), snapshot(px), dispose() }
 // show は Promise を返す(柄の絵ができて、形がそろったら終わる)。
-// 回し方: 1本指/マウスでドラッグ = 回る、2本指ピンチ/ホイール = 寄る・引く、ダブルタップ = もとの向き。
+// 回し方: 横になぞる = 回る(縦はページが動く)、2本指ピンチ・zoomBy(f) = 寄る・引く、ダブルタップ = もとの向き。
 import * as THREE from 'three';
 import { buildBag } from './viewer3d-bag.js';
 
@@ -120,8 +120,8 @@ export function createViewer(containerEl) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   const canvas = renderer.domElement;
-  Object.assign(canvas.style, { width: '100%', height: '100%', display: 'block', touchAction: 'none', outline: 'none' });
-  canvas.setAttribute('aria-label', 'バッグの立体の絵。指でなぞると回ります');
+  Object.assign(canvas.style, { width: '100%', height: '100%', display: 'block', touchAction: 'pan-y', outline: 'none' });   // 縦になぞるとページが動く
+  canvas.setAttribute('aria-label', 'バッグの立体の絵。指で横になぞると回ります');
   canvas.setAttribute('role', 'img');
   if (getComputedStyle(containerEl).position === 'static') containerEl.style.position = 'relative';
   containerEl.appendChild(canvas);
@@ -147,7 +147,7 @@ export function createViewer(containerEl) {
   const DEF = { theta: -0.55, phi: 0.3, zoom: 1 };
   let autoRotate = true, lastTouch = -1e9, dirty = true;
   const IDLE_MS = 3500, AUTO_SPEED = 0.16;   // 1周 約40秒
-  const PHI_MIN = -0.08, PHI_MAX = 0.95, ZMIN = 0.5, ZMAX = 1.9;
+  const ZMIN = 0.5, ZMAX = 1.9;
 
   function placeCamera(c = cur, distBase = fitDist) {
     const d = distBase * c.zoom;
@@ -198,8 +198,7 @@ export function createViewer(containerEl) {
     const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
     if (pts.size === 1) {
       const k = 3.2 / Math.max(240, Math.min(W, H) * 1.6);   // 画面の大きさに合わせて、ゆっくり
-      goal.theta -= dx * k;
-      goal.phi = clamp(goal.phi + dy * k * 0.8, PHI_MIN, PHI_MAX);
+      goal.theta -= dx * k;          // 横の動きだけ回す。上下の角度は決まったまま
     } else if (pts.size === 2) {
       const [a, b] = [...pts.values()]; const dd = Math.hypot(a.x - b.x, a.y - b.y) || 1;
       goal.zoom = clamp(zoom0 * pinch0 / dd, ZMIN, ZMAX);
@@ -207,9 +206,16 @@ export function createViewer(containerEl) {
     touched();
   }
   function onUp(e) { pts.delete(e.pointerId); if (pts.size < 2) pinch0 = 0; touched(); }
+  // ホイールはページを動かすほうを優先。トラックパッドのピンチ(ctrl つき)だけ寄る・引く
   function onWheel(e) {
+    if (!e.ctrlKey) return;
     e.preventDefault();
-    goal.zoom = clamp(goal.zoom * Math.exp(clamp(e.deltaY, -120, 120) * 0.0012), ZMIN, ZMAX); touched();
+    goal.zoom = clamp(goal.zoom * Math.exp(clamp(e.deltaY, -60, 60) * 0.01), ZMIN, ZMAX); touched();
+  }
+  // 画面の ＋− ボタン用。f < 1 で寄る、f > 1 で引く(例: zoomBy(0.8) / zoomBy(1.25))
+  function zoomBy(f) {
+    f = +f; if (!(f > 0)) return goal.zoom;
+    goal.zoom = clamp(goal.zoom * f, ZMIN, ZMAX); touched(); return goal.zoom;
   }
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointermove', onMove);
@@ -305,5 +311,5 @@ export function createViewer(containerEl) {
   }
 
   resize(); placeCamera(); kick();
-  return { show, setAutoRotate, resize, snapshot, dispose };
+  return { show, setAutoRotate, resize, snapshot, dispose, zoomBy };
 }
