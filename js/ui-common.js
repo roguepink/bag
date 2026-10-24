@@ -123,6 +123,10 @@ export function lookOf(fabric, colorway, COLORWAYS = []) {
 }
 
 // ---------- ことば ----------
+/** 「・」で区切った名前を、区切りの所でだけ折り返す HTML に */
+export function nameHTML(name) {
+  return String(name == null ? '' : name).split('・').map((t) => `<span class="nw">${esc(t)}</span>`).join('・<wbr>');
+}
 export function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }

@@ -1,7 +1,7 @@
 // えらぶ: 仲間 → バッグ一覧
 import {
   esc, h, store, groupIcon, bagIcon, levelBadge, trendBadge, currentLook,
-  snapshotOf, cachedSnapshot, SIZE_NAME, pickSize, pruneSnapshots,
+  snapshotOf, cachedSnapshot, nameHTML, SIZE_NAME, pickSize, pruneSnapshots,
 } from './ui-common.js';
 
 const preparing = `<div class="empty">
@@ -16,6 +16,7 @@ export async function renderHome(root, { catalog, go }) {
       <p class="kicker">手づくりの型紙</p>
       <h1>どんなバッグを<br>作りますか</h1>
       <p class="lead">形をえらぶと、原寸の型紙を家のプリンターで印刷できます。</p>
+      <p class="steps-mini-h">すすめ方</p>
       <ol class="steps-mini" aria-label="すすめ方">
         <li><b>1</b>選ぶ</li><li><b>2</b>見る</li><li><b>3</b>型紙</li><li><b>4</b>印刷</li><li><b>5</b>作る</li>
       </ol>
@@ -31,7 +32,7 @@ export async function renderHome(root, { catalog, go }) {
     const n = bags.filter((b) => b.group === g.id).length;
     const card = h(`<button class="group-card" type="button">
       <span class="gicon">${groupIcon(g)}</span>
-      <span class="gname">${esc(g.name)}</span>
+      <span class="gname">${nameHTML(g.name)}</span>
       ${n ? `<span class="gcount">${n}しゅるい</span>` : ''}</button>`);
     card.addEventListener('click', () => go(`g/${encodeURIComponent(g.id)}`));
     grid.appendChild(card);
@@ -60,7 +61,7 @@ export async function renderList(root, { route, catalog, go, isStale }) {
   root.innerHTML = `
     <div class="page-head">
       <p class="kicker">えらぶ</p>
-      <h1>${esc(g.name)}</h1>
+      <h1>${nameHTML(g.name)}</h1>
       <p class="lead">作りたい形を、ひとつえらんでください。</p>
     </div>
     <div id="easy-slot"></div>

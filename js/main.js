@@ -64,7 +64,7 @@ async function render() {
   backBtn.hidden = route.name === 'home';
   shell.classList.toggle('is-home', route.name === 'home');
   screen.classList.remove('has-dock');
-  document.querySelectorAll('.dock, .zoomer').forEach((el) => el.remove());
+  document.querySelectorAll('.dock, .zoomer, .mini-view, .sheet-wrap').forEach((el) => el.remove());
 
   const cat = await catalog();
   if (my !== renderNo) return;

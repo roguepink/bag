@@ -19,9 +19,9 @@ function openTerm(item) {
   const el = document.createElement('div');
   el.className = 'sheet-wrap';
   el.innerHTML = `<div class="sheet-back" data-close></div>
-    <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(item.term)}の説明">
-      <p class="sheet-term">${esc(item.term)}</p>
-      <p class="sheet-text">${esc(item.text)}</p>
+    <div class="gsheet" role="dialog" aria-modal="true" aria-label="${esc(item.term)}の説明">
+      <p class="gsheet-term">${esc(item.term)}</p>
+      <p class="gsheet-text">${esc(item.text)}</p>
       <button class="btn btn-primary btn-block" type="button" data-close>わかった</button>
     </div>`;
   document.body.appendChild(el);
@@ -86,12 +86,16 @@ export async function renderSteps(root, { bag, go, isStale }) {
     const top = body.getBoundingClientRect().top + window.scrollY - 100;
     if (window.scrollY > top) window.scrollTo({ top, behavior: 'smooth' });
   };
-  root.addEventListener('click', (e) => {
+  const onTerm = (e) => {
     const b = e.target.closest('.term');
     if (!b) return;
-    const item = gloss.find((g) => g.term === b.dataset.term);
+    const item = gloss.find((g) => esc(g.term) === b.dataset.term || g.term === b.dataset.term);
     if (item) openTerm(item);
-  });
+  };
+  root.addEventListener('click', onTerm);
   draw();
-  return () => document.querySelectorAll('.sheet-wrap').forEach((el) => el.remove());
+  return () => {
+    root.removeEventListener('click', onTerm);
+    document.querySelectorAll('.sheet-wrap').forEach((el) => el.remove());
+  };
 }

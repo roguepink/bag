@@ -21,7 +21,8 @@ export async function renderView(root, { bag, go, isStale }) {
     </div>
     <div class="view-layout">
       <div class="stage-wrap">
-        <div class="stage" id="stage" aria-label="バッグの立体の絵。指でなぞると回ります"></div>
+        <div class="stage" id="stage" aria-label="バッグの立体の絵。指で横になぞると回ります"></div>
+        <p class="below-cue" aria-hidden="true">⌄ 下で、大きさと柄をえらべます</p>
       </div>
       <div class="controls">
         ${bag.desc ? `<p class="desc">${esc(bag.desc)}</p>` : ''}
@@ -58,11 +59,46 @@ export async function renderView(root, { bag, go, isStale }) {
     stage.innerHTML = `<div class="fallback"><div>${bagIcon(bag)}<p>立体の絵は、ただいま準備中です。</p></div></div>`;
   }
   const look = () => lookOf(fabric, colorway, COLORWAYS);
+  // 柄・色を選ぶとき 3D が画面の外なら、右上に小さな見本を出す
+  // 柄の所に張りつく小さな見本(スマホで 3D が見えないとき)
+  const mini = h(`<button class="mini-view" type="button" aria-label="上の立体の絵へもどる" hidden><img alt=""><span class="mv-t">えらんだ柄で<br>こうなります</span></button>`);
+  const fsec = root.querySelector('#fabric-sec');
+  if (fsec) fsec.prepend(mini);
+  mini.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  let stageOut = false;
+  let showing = Promise.resolve();
+  const updateMini = async () => {
+    if (!viewer || !stageOut) return;
+    await showing;
+    const url = safe(() => viewer.snapshot(220), null);
+    if (typeof url === 'string' && url.startsWith('data:')) { mini.querySelector('img').src = url; mini.hidden = false; }
+  };
+  let io = null;
+  if ('IntersectionObserver' in window) {
+    io = new IntersectionObserver(([en]) => {
+      stageOut = !en.isIntersecting && en.boundingClientRect.top < 0;
+      if (stageOut && window.innerWidth < 900) updateMini(); else mini.hidden = true;
+    }, { threshold: 0.15 });
+    io.observe(stage);
+  }
   const show = () => {
     if (!viewer) return;
-    safe(() => viewer.show(bag.shape(paramsOf(bag, size)), look()));
+    showing = Promise.resolve(safe(() => viewer.show(bag.shape(paramsOf(bag, size)), look()))).catch(() => null);
+    if (stageOut && window.innerWidth < 900) updateMini();
   };
   show();
+
+  // ＋ − (大きく・小さく)
+  if (viewer && typeof viewer.zoomBy === 'function') {
+    const z = h(`<div class="zoom3d" role="group" aria-label="大きさを変えて見る">
+      <button type="button" data-zf="0.8" aria-label="大きく見る">＋</button>
+      <button type="button" data-zf="1.25" aria-label="小さく見る">−</button></div>`);
+    z.addEventListener('pointerdown', (e) => e.stopPropagation());
+    z.querySelectorAll('[data-zf]').forEach((b) => b.addEventListener('click', (e) => {
+      e.stopPropagation(); safe(() => viewer.zoomBy(Number(b.dataset.zf)));
+    }));
+    stage.appendChild(z);
+  }
   if (viewer) safe(() => viewer.setAutoRotate && viewer.setAutoRotate(true));
   const onResize = () => viewer && safe(() => viewer.resize());
   window.addEventListener('resize', onResize);
@@ -70,7 +106,7 @@ export async function renderView(root, { bag, go, isStale }) {
   // 指で回せる案内(一度だけ)
   let hint = null;
   if (viewer && !store.get('hintShown')) {
-    hint = h(`<div class="hint">${FINGER_SVG}<span>指でなぞると回ります</span></div>`);
+    hint = h(`<div class="hint">${FINGER_SVG}<span>指で横になぞると回ります</span></div>`);
     stage.appendChild(hint);
     const hide = () => {
       if (!hint) return;
@@ -150,6 +186,8 @@ export async function renderView(root, { bag, go, isStale }) {
 
   return () => {
     window.removeEventListener('resize', onResize);
+    if (io) io.disconnect();
+    mini.remove();
     if (viewer) safe(() => viewer.dispose());
     dock.remove();
   };

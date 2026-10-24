@@ -1,5 +1,5 @@
 // オフラインで使えるようにする(js を足したら FILES に足して VERSION を上げる)
-const VERSION = 'bag-v3';
+const VERSION = 'bag-v4';
 const FILES = [
   './',
   './index.html',
@@ -24,6 +24,8 @@ const FILES = [
   './js/fabric.js',
   './js/viewer3d.js',
   './js/bags/index.js',
+  './js/bags/steps-common.js',
+  './js/glossary.js',
   './js/bags/parts.js',
   './js/bags/pouch.js',
   './js/bags/tote.js',
@@ -51,21 +53,21 @@ self.addEventListener('activate', (e) => {
   })());
 });
 
-// まず手もとの控え。なければ取りに行って控えておく(js/bags/*.js なども自然に入る)
+// ネットがつながれば新しいものを先に(直した型紙がすぐ届く)。つながらないときは手もとの控え。
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   e.respondWith((async () => {
     const cache = await caches.open(VERSION);
-    const hit = await cache.match(req, { ignoreSearch: true });
-    const net = fetch(req).then((res) => {
+    try {
+      const res = await fetch(req, { cache: 'no-cache' });
       if (res && res.ok) cache.put(req, res.clone());
       return res;
-    }).catch(() => null);
-    if (hit) { e.waitUntil(net); return hit; }
-    const res = await net;
-    if (res) return res;
-    if (req.mode === 'navigate') return (await cache.match('./index.html')) || Response.error();
-    return Response.error();
+    } catch (err) {
+      const hit = await cache.match(req, { ignoreSearch: true });
+      if (hit) return hit;
+      if (req.mode === 'navigate') return (await cache.match('./index.html')) || Response.error();
+      return Response.error();
+    }
   })());
 });
