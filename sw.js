@@ -1,5 +1,5 @@
 // オフラインで使えるようにする(js を足したら FILES に足して VERSION を上げる)
-const VERSION = 'bag-v8';
+const VERSION = 'bag-v9';
 const FILES = [
   './',
   './index.html',
