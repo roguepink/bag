@@ -10,12 +10,14 @@ const loadGlossary = () => (glossP ||= import('./glossary.js').then((m) => (Arra
 function withTerms(text, terms) {
   const t = esc(text);
   if (!terms.length) return t;
-  // 文の中では find の形で探す(「わ」→「「わ」」など)。長い言葉から先に
-  const key = (g) => esc(g.find || g.term);
-  const re = new RegExp(terms.map((g) => key(g).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+  // 文の中では find の形で探す(「わ」→「「わ」」など。find は1つ以上)。長い言葉から先に
+  const words = [];
+  terms.forEach((g, k) => [].concat(g.find || g.term).forEach((w) => w && words.push({ w: esc(w), k })));
+  words.sort((x, y) => y.w.length - x.w.length);
+  const re = new RegExp(words.map((x) => x.w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
   return t.replace(re, (m) => {
-    const k = terms.findIndex((g) => key(g) === m);
-    return `<button type="button" class="term" data-k="${k}">${m}</button>`;
+    const hit = words.find((x) => x.w === m);
+    return `<button type="button" class="term" data-k="${hit.k}">${m}</button>`;
   });
 }
 
@@ -38,8 +40,7 @@ function openTerm(item) {
 
 export async function renderSteps(root, { bag, go, isStale }) {
   const size = pickSize(bag, store.get('size'));
-  const gloss = (await loadGlossary()).filter((g) => g && g.term && g.text)
-    .sort((a, b) => (b.find || b.term).length - (a.find || a.term).length);
+  const gloss = (await loadGlossary()).filter((g) => g && g.term && g.text);
   if (isStale && isStale()) return;
   const steps = typeof bag.steps === 'function' ? (safe(() => bag.steps(paramsOf(bag, size)), []) || []) : [];
   const saved = store.get('step') || {};

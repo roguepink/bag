@@ -63,6 +63,13 @@ async ({ bags: onlyBags, sizes: onlySizes, quick }) => {
       if (b.left < sr.left - 0.5 || b.right > sr.right + 0.5 || b.top < sr.top - 0.5 || b.bottom > sr.bottom + 0.5) outText++;
     }
     res.outText = outText;
+    // 切りとり(clip)の外の 説明の文字の大きさ(mm)
+    let minTxt = 99;
+    for (const t of svg.querySelectorAll('text')) {
+      const fs = parseFloat(t.getAttribute('font-size'));
+      if (fs > 0) minTxt = Math.min(minTxt, fs);
+    }
+    res.minTxt = minTxt;
     host.innerHTML = '';
     return res;
   }
@@ -172,11 +179,15 @@ async ({ bags: onlyBags, sizes: onlySizes, quick }) => {
       try {
         const st = bag.steps(p) || [];
         row.steps = st.length;
-        if (st.length < 6 || st.length > 12) row.warn.push(`作り方が ${st.length} 手順(約束は 6〜12)`);
+        if (st.length < 6 || st.length > 16) row.warn.push(`作り方が ${st.length} 手順(約束は 6〜16)`);
         if (st.some((s) => typeof s !== 'string' || !s.trim())) row.errors.push('作り方に空の手順');
         const long = st.filter((s) => s.length > 110);
         if (long.length) row.warn.push(`長い手順 ${long.length} 個(最大 ${Math.max(...st.map((s) => s.length))} 字)`);
         row.stepsText = st;
+        // 単語の間のあき(日本語の字と字の間の半角・全角スペース)
+        row.spaces = st.reduce((n, s) => n + (s.match(/[^\x00-\x7f][ 　][^\x00-\x7f(]/g) || []).length, 0);
+        // 型紙を布に置いて印を写す手順があるか
+        row.transfer = st.some((s) => /写/.test(s) && /(印|しるし)/.test(s));
       } catch (e) { err('steps', e); }
       try {
         const ex = bag.extras(p) || [];
@@ -211,6 +222,7 @@ async ({ bags: onlyBags, sizes: onlySizes, quick }) => {
             if (r.ink === 0 && i > 0) info.blank.push(r.label);
             info.outText += r.outText;
             if (i === 0) info.square = r.square;
+            info.minTxt = Math.min(info.minTxt ?? 99, r.minTxt);
           });
           const cov = coverage(bag, sz, paper);
           info.coverMiss = cov.miss; info.overlap = cov.overlap;
@@ -222,5 +234,7 @@ async ({ bags: onlyBags, sizes: onlySizes, quick }) => {
     out.push(bagRow);
   }
   host.remove();
-  return { count: B.BAGS.length, groups: B.GROUPS.map((g) => ({ id: g.id, name: g.name, n: B.BAGS.filter((b) => b.group === g.id).length })), bags: out };
+  let glossary = [];
+  try { const Gl = await import(base + 'js/glossary.js'); glossary = Gl.GLOSSARY || []; } catch (e) { glossary = null; }
+  return { glossary, count: B.BAGS.length, groups: B.GROUPS.map((g) => ({ id: g.id, name: g.name, n: B.BAGS.filter((b) => b.group === g.id).length })), bags: out };
 }
