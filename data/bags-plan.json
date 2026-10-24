@@ -1,0 +1,4136 @@
+{
+ "version": 1,
+ "date": "2026-10-24",
+ "author": "市場調査係",
+ "unit": "mm",
+ "readme": "型紙係むけの設計メモ。sizes はできあがり寸法(縫い代なし)。pieces の size は『できあがり線の大きさの決め方』。切るときは seam(縫い代)を外側に足す。式の w,h,d などは sizes の値。数字は市販型紙・作り方記事の一般的な値を参考に、家庭用ミシン・手縫いで縫える大きさにまるめた。",
+ "rules": {
+  "seam": "縫い代は基本 10mm。口(入れ口)の三つ折りや、ひも通し口は別に書いた値(多くは 30mm = 1cm+2cm の三つ折り)。",
+  "handleStrip": "布の持ち手は『四つ折り』が基本: 切る幅 = できあがり幅 × 4、切る長さ = 持ち手の長さ len + 差し込み 30mm × 2。縫い代は四つ折りに含まれるので seam 0。長いので measureOnly:true(布に直接線を引く)。",
+  "handleLen": "len は本体の口から外に出ている長さ(差し込みぶんは含まない)。手さげ 300〜400、肩かけ 500〜600、ななめがけ 1100〜1400 が目安。",
+  "boxCorner": "『底のマチ(つまみマチ)』: 本体の下の角から d/2 × d/2 の四角を切り取り(または縫ってから三角に縫う)。できあがりの底の幅は w - d になる。",
+  "lining": "裏布は表布と同じ型紙で切る(裏布の口は表布より 0〜5mm 下げると口がきれい)。返し口は裏布の底か脇に 120mm あける。",
+  "interfacing": "接着芯は表布と同じ形でできあがり線どおり(縫い代なし、または縫い代 5mm)。かんたん(level1)は『なくてもよい』としてよい。",
+  "zipper": "ファスナーは市販の長さにまるめる: 12・15・18・20・25・30・40・50・60cm。",
+  "fabricWidth": "布の幅は 110cm を基本に用量を計算(手ぬぐいは 34cm×90cm)。",
+  "drawCord": "巾着のひもは 2本どり(左右から)が基本: 1本の長さ = 袋の口まわり(w×2) + 200mm。",
+  "senior": "level1 は『まっすぐ縫うだけ・曲線なし・ファスナーなし』を目標にした。曲線や厚い重なりは level2 以上。"
+ },
+ "groups": [
+  {
+   "id": "tote",
+   "name": "トートバッグ",
+   "desc": "手さげ・肩かけ。いちばん作りやすく、毎日使える。",
+   "icon": "tote"
+  },
+  {
+   "id": "shoulder",
+   "name": "ショルダー・ななめがけ",
+   "desc": "両手があく。スマホや財布だけ入れるお出かけ用。",
+   "icon": "shoulder"
+  },
+  {
+   "id": "pouch",
+   "name": "ポーチ・小物入れ",
+   "desc": "小さくて早くできる。はじめての1つや贈りものに。",
+   "icon": "pouch"
+  },
+  {
+   "id": "wa",
+   "name": "和の袋",
+   "desc": "巾着・あずま袋など、ひもや結びで口をとじる袋。",
+   "icon": "kinchaku"
+  },
+  {
+   "id": "backpack",
+   "name": "リュック・ボディバッグ",
+   "desc": "せなかや体につけて、両手があく袋。",
+   "icon": "backpack"
+  },
+  {
+   "id": "outing",
+   "name": "おでかけ・エコバッグ",
+   "desc": "お買いものや旅行に。ふんわりした形や、たためる袋。",
+   "icon": "marche"
+  }
+ ],
+ "bags": [
+  {
+   "id": "tote-flat",
+   "name": "ぺたんこトート",
+   "group": "tote",
+   "level": 1,
+   "trend": true,
+   "desc": "マチのない、うすくて平らなトート。まっすぐ縫うだけで作れます。",
+   "family": "flat",
+   "closure": null,
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": {
+     "side": "front",
+     "w": "w*0.5",
+     "h": "h*0.4"
+    }
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 300,
+      "M": 400,
+      "L": 550
+     },
+     "width": {
+      "S": 20,
+      "M": 25,
+      "L": 30
+     },
+     "pos": "口の両はしから w*0.25 内側に、前と後ろに1本ずつ"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 250,
+     "h": 250,
+     "d": 0,
+     "handleLen": 300,
+     "handleW": 20
+    },
+    "M": {
+     "w": 330,
+     "h": 380,
+     "d": 0,
+     "handleLen": 400,
+     "handleW": 25
+    },
+    "L": {
+     "w": 400,
+     "h": 420,
+     "d": 0,
+     "handleLen": 550,
+     "handleW": 30
+    }
+   },
+   "sizeNote": {
+    "S": "本や財布が入る",
+    "M": "A4 の書類が入る",
+    "L": "肩にかけられる・雑誌も入る"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "w × h(半分の型紙。底を『わ』にして 2h の長さになる)",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "w × h(本体と同じ)",
+     "seam": 10
+    },
+    {
+     "id": "pocket",
+     "name": "外ポケット",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "(w×0.5) × (h×0.4)。上を『わ』にして二つ折り",
+     "seam": 10,
+     "note": "なくてもよい"
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "w × h",
+     "seam": 0,
+     "note": "うすい芯。なくてもよい"
+    }
+   ],
+   "steps": [
+    "持ち手の布を四つ折りにして、両はしを縫う(2本)",
+    "ポケットを二つ折りにして、本体の前に仮どめする",
+    "本体を中表に二つ折りにして、両脇を縫う",
+    "裏布も同じように両脇を縫う。片方の脇に返し口 12cm をのこす",
+    "本体の口に、持ち手を仮どめする",
+    "本体(表)を裏布の中に入れ、口をぐるりと縫う",
+    "返し口から表にかえし、返し口をとじる",
+    "口のまわりを 5mm 内側でぐるりと縫って押さえる"
+   ],
+   "extras": {
+    "S": [
+     "なし(糸だけ)"
+    ],
+    "M": [
+     "なし(糸だけ)"
+    ],
+    "L": [
+     "なし(糸だけ)"
+    ]
+   }
+  },
+  {
+   "id": "tote-basic",
+   "name": "まいにちトート",
+   "group": "tote",
+   "level": 1,
+   "trend": false,
+   "desc": "底にマチがあって、たくさん入る基本のトート。お弁当や買いものに。",
+   "family": "boxed",
+   "closure": null,
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": {
+     "side": "back",
+     "w": 150,
+     "h": 150
+    }
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 300,
+      "M": 450,
+      "L": 550
+     },
+     "width": {
+      "S": 25,
+      "M": 25,
+      "L": 30
+     },
+     "pos": "口の中心から左右 w*0.2 の位置"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 280,
+     "h": 220,
+     "d": 100,
+     "handleLen": 300,
+     "handleW": 25
+    },
+    "M": {
+     "w": 380,
+     "h": 330,
+     "d": 120,
+     "handleLen": 450,
+     "handleW": 25
+    },
+    "L": {
+     "w": 460,
+     "h": 380,
+     "d": 150,
+     "handleLen": 550,
+     "handleW": 30
+    }
+   },
+   "sizeNote": {
+    "S": "お弁当と水筒が入る",
+    "M": "A4 が入る・買いものに",
+    "L": "1泊の着がえも入る"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2)。底を『わ』。下の両角を d/2 × d/2 切り取る(つまみマチ)",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "inpocket",
+     "name": "内ポケット",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "S 130×130 / M 180×150 / L 200×180。上を『わ』",
+     "seam": 10
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 0,
+     "note": "中くらいの厚さ。帆布ならなくてよい"
+    }
+   ],
+   "steps": [
+    "持ち手を四つ折りにして縫う",
+    "内ポケットを二つ折りにして、裏布に縫いつける",
+    "本体を中表に二つ折りにし、両脇を縫う",
+    "底の角(切り取った所)を、脇の線と底の線を合わせて横に縫う(マチができる)",
+    "裏布も同じに縫う。脇に返し口 12cm をのこす",
+    "本体の口に持ち手を仮どめする",
+    "本体を裏布の中に入れて、口をぐるりと縫う",
+    "表にかえして返し口をとじ、口を 5mm 内側で押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "なし(糸だけ)"
+    ],
+    "M": [
+     "マグネットボタン 1組(つけるなら)"
+    ],
+    "L": [
+     "マグネットボタン 1組(つけるなら)"
+    ]
+   }
+  },
+  {
+   "id": "tote-yokonaga",
+   "name": "よこながトート",
+   "group": "tote",
+   "level": 1,
+   "trend": true,
+   "desc": "横に長くて背のひくい、すっきりした形。2026年に人気の形です。",
+   "family": "boxed",
+   "closure": null,
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 350,
+      "M": 450,
+      "L": 500
+     },
+     "width": {
+      "S": 20,
+      "M": 25,
+      "L": 25
+     },
+     "pos": "口の中心から左右 w*0.2"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 320,
+     "h": 180,
+     "d": 80,
+     "handleLen": 350,
+     "handleW": 20
+    },
+    "M": {
+     "w": 420,
+     "h": 240,
+     "d": 100,
+     "handleLen": 450,
+     "handleW": 25
+    },
+    "L": {
+     "w": 500,
+     "h": 280,
+     "d": 120,
+     "handleLen": 500,
+     "handleW": 25
+    }
+   },
+   "sizeNote": {
+    "S": "長財布とスマホが入る",
+    "M": "A4 を横にして入る",
+    "L": "ひざかけや上着も入る"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2)。底『わ』、下の角を d/2 四方切り取る",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 0,
+     "note": "形がくずれないよう、中くらいの芯をはる"
+    }
+   ],
+   "steps": [
+    "本体に接着芯をアイロンではる",
+    "持ち手を四つ折りにして縫う",
+    "本体を中表に二つ折りにして、両脇を縫う",
+    "底の角を縫ってマチを作る",
+    "裏布も同じに縫う(返し口 12cm)",
+    "持ち手を口に仮どめする",
+    "本体を裏布に入れて口を縫い、表にかえす",
+    "返し口をとじ、口を押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "マグネットボタン 1組(つけるなら)"
+    ],
+    "M": [
+     "マグネットボタン 1組(つけるなら)"
+    ],
+    "L": [
+     "マグネットボタン 1組(つけるなら)"
+    ]
+   }
+  },
+  {
+   "id": "tote-big",
+   "name": "くったり大きなトート",
+   "group": "tote",
+   "level": 1,
+   "trend": true,
+   "desc": "大きくて、やわらかくくったりした形。肩にかけてたくさん運べます。",
+   "family": "boxed",
+   "closure": null,
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": {
+     "side": "back",
+     "w": 200,
+     "h": 180
+    },
+    "soft": true
+   },
+   "handles": [
+    {
+     "type": "shoulder",
+     "len": {
+      "S": 550,
+      "M": 600,
+      "L": 650
+     },
+     "width": {
+      "S": 30,
+      "M": 35,
+      "L": 40
+     },
+     "pos": "口の中心から左右 w*0.22"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 420,
+     "h": 360,
+     "d": 120,
+     "handleLen": 550,
+     "handleW": 30
+    },
+    "M": {
+     "w": 480,
+     "h": 400,
+     "d": 150,
+     "handleLen": 600,
+     "handleW": 35
+    },
+    "L": {
+     "w": 560,
+     "h": 440,
+     "d": 180,
+     "handleLen": 650,
+     "handleW": 40
+    }
+   },
+   "sizeNote": {
+    "S": "A4 とお弁当が入る",
+    "M": "1泊旅行の荷物が入る",
+    "L": "ふとんカバーや洗たく物も運べる"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2)。底『わ』、下の角を d/2 四方切り取る",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "inpocket",
+     "name": "内ポケット",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "200 × 180。上を『わ』",
+     "seam": 10
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    }
+   ],
+   "steps": [
+    "持ち手を四つ折りにして縫う(太いので2本線で縫うと丈夫)",
+    "内ポケットを裏布に縫いつける",
+    "本体の両脇を縫い、底の角を縫ってマチを作る",
+    "裏布も同じに縫う(返し口 15cm)",
+    "持ち手を口に仮どめする",
+    "本体を裏布に入れて口を縫う",
+    "表にかえして返し口をとじる",
+    "口を押さえ縫い。持ち手のつけ根は四角とバツに縫って丈夫にする"
+   ],
+   "extras": {
+    "S": [
+     "なし(糸だけ)"
+    ],
+    "M": [
+     "なし(糸だけ)"
+    ],
+    "L": [
+     "なし(糸だけ)"
+    ]
+   },
+   "note": "接着芯は使わない(くったりさせるため)。厚手の綿・麻・帆布 8号くらいがよい"
+  },
+  {
+   "id": "tote-box",
+   "name": "はこ型トート",
+   "group": "tote",
+   "level": 3,
+   "trend": false,
+   "desc": "横と底に1本の帯(マチ)をつけた、四角くしっかりしたトート。",
+   "family": "gusset",
+   "closure": "snap",
+   "shape": {
+    "corner": 10,
+    "flap": null,
+    "topW": null,
+    "pocket": {
+     "side": "front",
+     "w": "w*0.7",
+     "h": "h*0.5"
+    }
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 350,
+      "M": 400,
+      "L": 500
+     },
+     "width": {
+      "S": 25,
+      "M": 25,
+      "L": 30
+     },
+     "pos": "口の中心から左右 w*0.22"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 260,
+     "h": 220,
+     "d": 120,
+     "handleLen": 350,
+     "handleW": 25
+    },
+    "M": {
+     "w": 340,
+     "h": 280,
+     "d": 140,
+     "handleLen": 400,
+     "handleW": 25
+    },
+    "L": {
+     "w": 400,
+     "h": 320,
+     "d": 160,
+     "handleLen": 500,
+     "handleW": 30
+    }
+   },
+   "sizeNote": {
+    "S": "お弁当箱がまっすぐ入る",
+    "M": "A4 ファイルが入る",
+    "L": "手芸道具・作品の持ち運びに"
+   },
+   "pieces": [
+    {
+     "id": "front",
+     "name": "本体(前・後ろ)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "w × h(下の角は半径10mmの丸)",
+     "seam": 10
+    },
+    {
+     "id": "gusset",
+     "name": "マチ(横と底の帯)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "d × (h×2 + w)。底の中心に合わせ印、脇の角に合わせ印",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "lining-front",
+     "name": "裏布(前・後ろ)",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "lining-gusset",
+     "name": "裏布(マチ)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "マチと同じ",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "pocket",
+     "name": "外ポケット",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "(w×0.7) × (h×0.5)。上『わ』",
+     "seam": 10
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯(本体・マチ)",
+     "fabric": "interfacing",
+     "cut": 3,
+     "fold": null,
+     "shape": "rect",
+     "size": "本体2枚・マチ1枚と同じ",
+     "seam": 0,
+     "note": "厚めの芯"
+    }
+   ],
+   "steps": [
+    "本体とマチに厚めの接着芯をはる",
+    "外ポケットを前の本体に縫いつける",
+    "持ち手を四つ折りにして縫う",
+    "マチの帯を前の本体のまわり(横・底・横)に、合わせ印をそろえて縫う。角は縫い代に切りこみを入れる",
+    "反対がわに後ろの本体を同じように縫う",
+    "裏布も同じに組み立てる(返し口 12cm)",
+    "持ち手を口に仮どめし、マグネットボタンを裏布につける",
+    "本体を裏布に入れて口を縫い、表にかえす",
+    "返し口をとじ、口を押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "マグネットボタン 1組",
+     "底板(あれば) 240×100"
+    ],
+    "M": [
+     "マグネットボタン 1組",
+     "底板(あれば) 320×120"
+    ],
+    "L": [
+     "マグネットボタン 1組",
+     "底板(あれば) 380×140"
+    ]
+   }
+  },
+  {
+   "id": "sh-phone",
+   "name": "スマホショルダー",
+   "group": "shoulder",
+   "level": 1,
+   "trend": true,
+   "desc": "スマホとカードだけ入る小さなななめがけ。ふたはマグネットでとめます。",
+   "family": "flat",
+   "closure": "snap",
+   "shape": {
+    "corner": 0,
+    "flap": {
+     "h": {
+      "S": 60,
+      "M": 70,
+      "L": 80
+     },
+     "shape": "round"
+    },
+    "topW": null,
+    "pocket": {
+     "side": "back",
+     "w": "w",
+     "h": "h*0.55"
+    }
+   },
+   "handles": [
+    {
+     "type": "cross",
+     "len": {
+      "S": 1200,
+      "M": 1300,
+      "L": 1400
+     },
+     "width": {
+      "S": 15,
+      "M": 15,
+      "L": 20
+     },
+     "note": "布で作るか、市販のひも(ナスカンつき)を使う"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 110,
+     "h": 170,
+     "d": 0,
+     "flapH": 60,
+     "strapLen": 1200,
+     "strapW": 15
+    },
+    "M": {
+     "w": 120,
+     "h": 190,
+     "d": 0,
+     "flapH": 70,
+     "strapLen": 1300,
+     "strapW": 15
+    },
+    "L": {
+     "w": 140,
+     "h": 210,
+     "d": 0,
+     "flapH": 80,
+     "strapLen": 1400,
+     "strapW": 20
+    }
+   },
+   "sizeNote": {
+    "S": "小さめのスマホが入る",
+    "M": "ふつうのスマホとカード",
+    "L": "大きいスマホと小銭入れ"
+   },
+   "pieces": [
+    {
+     "id": "front",
+     "name": "前",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "w × h",
+     "seam": 10
+    },
+    {
+     "id": "back",
+     "name": "後ろ+ふた",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect-roundtop",
+     "size": "w × (h + flapH)。上の角を半径 w/2×0.6 の丸に",
+     "seam": 10,
+     "marks": "h の所に『折り線』、ふたの先にマグネット位置"
+    },
+    {
+     "id": "card",
+     "name": "カードポケット",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "w × (h×0.55)。上『わ』",
+     "seam": 10
+    },
+    {
+     "id": "lining-front",
+     "name": "裏布(前)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "前と同じ",
+     "seam": 10
+    },
+    {
+     "id": "lining-back",
+     "name": "裏布(後ろ+ふた)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect-roundtop",
+     "size": "後ろ+ふたと同じ",
+     "seam": 10
+    },
+    {
+     "id": "tab",
+     "name": "Dカン通し",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "40 × 60(四つ折りにして 10×60)",
+     "seam": 0
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "前・後ろ+ふたと同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "前と後ろ+ふたに接着芯をはる",
+    "カードポケットを二つ折りにして、後ろの裏布の上に重ねて仮どめ",
+    "Dカン通しを四つ折りに縫い、Dカンを通して二つ折り。両脇の口から 15mm 下に仮どめ",
+    "前と後ろを中表に合わせ、脇と底を縫う",
+    "裏布も同じに縫う(底に返し口 8cm)",
+    "ふたの裏にマグネットの凸、前の表に凹をつける(先につける)",
+    "表袋と裏袋を中表に合わせ、口とふたのまわりを縫う",
+    "表にかえして返し口をとじ、ひもをナスカンでつける"
+   ],
+   "extras": {
+    "S": [
+     "マグネットボタン(さしこみ式) 1組",
+     "Dカン 15mm 2個",
+     "ナスカン 15mm 2個",
+     "ひも 1200mm(市販のショルダーひもでもよい)"
+    ],
+    "M": [
+     "マグネットボタン(さしこみ式) 1組",
+     "Dカン 15mm 2個",
+     "ナスカン 15mm 2個",
+     "ひも 1300mm"
+    ],
+    "L": [
+     "マグネットボタン(さしこみ式) 1組",
+     "Dカン 20mm 2個",
+     "ナスカン 20mm 2個",
+     "ひも 1400mm"
+    ]
+   }
+  },
+  {
+   "id": "sh-sacoche",
+   "name": "サコッシュ",
+   "group": "shoulder",
+   "level": 1,
+   "trend": false,
+   "desc": "うすくて軽い、ななめがけの袋。財布と小物を入れてお散歩に。",
+   "family": "flat",
+   "closure": "snap",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": {
+     "side": "front",
+     "w": "w*0.6",
+     "h": "h*0.5"
+    }
+   },
+   "handles": [
+    {
+     "type": "cross",
+     "len": {
+      "S": 1200,
+      "M": 1300,
+      "L": 1400
+     },
+     "width": {
+      "S": 20,
+      "M": 20,
+      "L": 25
+     },
+     "pos": "両脇の口に縫いこむ(本体の外ではさむ)"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 200,
+     "h": 160,
+     "d": 0,
+     "strapLen": 1200,
+     "strapW": 20
+    },
+    "M": {
+     "w": 250,
+     "h": 200,
+     "d": 0,
+     "strapLen": 1300,
+     "strapW": 20
+    },
+    "L": {
+     "w": 300,
+     "h": 240,
+     "d": 0,
+     "strapLen": 1400,
+     "strapW": 25
+    }
+   },
+   "sizeNote": {
+    "S": "財布とスマホ",
+    "M": "長財布とハンカチ",
+    "L": "A5 の手帳や本も入る"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "w × h。底『わ』",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "pocket",
+     "name": "外ポケット",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "(w×0.6) × (h×0.5)。上『わ』",
+     "seam": 10
+    },
+    {
+     "id": "strap",
+     "name": "ひも",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "(strapW×4) × (strapLen+40)。布が足りないときは2本つなぐ",
+     "seam": 0,
+     "measureOnly": true
+    }
+   ],
+   "steps": [
+    "ひもを四つ折りにして縫う(市販のテープでもよい)",
+    "外ポケットを二つ折りにして本体の前に縫いつける",
+    "本体を中表に二つ折りにして両脇を縫う",
+    "裏布も同じに縫う(返し口 10cm)",
+    "ひものはしを両脇の口に仮どめする(ねじれないように)",
+    "マグネットボタンを裏布の口の中心につける",
+    "本体を裏布に入れて口を縫い、表にかえす",
+    "返し口をとじ、口を押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "マグネットボタン 1組"
+    ],
+    "M": [
+     "マグネットボタン 1組"
+    ],
+    "L": [
+     "マグネットボタン 1組"
+    ]
+   }
+  },
+  {
+   "id": "sh-halfmoon",
+   "name": "半月ショルダー",
+   "group": "shoulder",
+   "level": 2,
+   "trend": true,
+   "desc": "おつきさまのような半円の形。上はファスナーでしっかりとじます。",
+   "family": "halfmoon",
+   "closure": "zip",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "cross",
+     "len": {
+      "S": 1200,
+      "M": 1300,
+      "L": 1400
+     },
+     "width": {
+      "S": 20,
+      "M": 25,
+      "L": 25
+     },
+     "pos": "マチの両はしの Dカン"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 220,
+     "h": 140,
+     "d": 60,
+     "strapLen": 1200,
+     "strapW": 20,
+     "zip": 200
+    },
+    "M": {
+     "w": 280,
+     "h": 170,
+     "d": 80,
+     "strapLen": 1300,
+     "strapW": 25,
+     "zip": 250
+    },
+    "L": {
+     "w": 340,
+     "h": 200,
+     "d": 100,
+     "strapLen": 1400,
+     "strapW": 25,
+     "zip": 300
+    }
+   },
+   "sizeNote": {
+    "S": "スマホと小さな財布",
+    "M": "長財布・ハンカチ・水",
+    "L": "折りたたみ傘や上着も"
+   },
+   "pieces": [
+    {
+     "id": "side",
+     "name": "本体(前・後ろ)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "halfmoon",
+     "size": "上がまっすぐ w、下が半だ円(高さ h)。上の両はしは半径 10mm",
+     "seam": 10
+    },
+    {
+     "id": "gusset",
+     "name": "マチ(下の帯)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "d × (半月の曲線の長さ)。両はしに Dカン通しをはさむ",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "zipgusset",
+     "name": "ファスナーマチ(上)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(d/2 + 5) × w。ファスナーの両側に1枚ずつ",
+     "seam": 10
+    },
+    {
+     "id": "lining-side",
+     "name": "裏布(前・後ろ)",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "halfmoon",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "lining-gusset",
+     "name": "裏布(マチ)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "マチと同じ",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "tab",
+     "name": "Dカン通し",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(strapW×4) × 60",
+     "seam": 0
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "halfmoon",
+     "size": "本体と同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体に接着芯をはる",
+    "ファスナーの両側にファスナーマチを縫う(上マチのできあがり)",
+    "上マチと下マチの両はしを Dカン通しをはさんで縫い、輪にする",
+    "輪のマチを前の本体のまわりに、合わせ印をそろえて縫う。曲線は縫い代に切りこみ",
+    "ファスナーを少しあけてから、後ろの本体も縫う",
+    "裏布も同じに組み、表袋に入れて、ファスナーのきわを手でまつる",
+    "Dカンにひもをつける"
+   ],
+   "extras": {
+    "S": [
+     "ファスナー 20cm 1本",
+     "Dカン 20mm 2個",
+     "ナスカン 20mm 2個",
+     "送りカン 20mm 1個",
+     "テープ 20mm × 1300mm(またはひも)"
+    ],
+    "M": [
+     "ファスナー 25cm 1本",
+     "Dカン 25mm 2個",
+     "ナスカン 25mm 2個",
+     "送りカン 25mm 1個",
+     "テープ 25mm × 1400mm"
+    ],
+    "L": [
+     "ファスナー 30cm 1本",
+     "Dカン 25mm 2個",
+     "ナスカン 25mm 2個",
+     "送りカン 25mm 1個",
+     "テープ 25mm × 1500mm"
+    ]
+   }
+  },
+  {
+   "id": "sh-pochette",
+   "name": "ふたつきポシェット",
+   "group": "shoulder",
+   "level": 2,
+   "trend": false,
+   "desc": "丸いふたがついた、上品な小さいバッグ。小さなマチで財布も入ります。",
+   "family": "envelope",
+   "closure": "snap",
+   "shape": {
+    "corner": 0,
+    "flap": {
+     "h": "h*0.6",
+     "shape": "round"
+    },
+    "topW": null,
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "shoulder",
+     "len": {
+      "S": 1100,
+      "M": 1200,
+      "L": 1300
+     },
+     "width": {
+      "S": 20,
+      "M": 25,
+      "L": 25
+     },
+     "pos": "両脇の口(Dカン)"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 180,
+     "h": 140,
+     "d": 30,
+     "flapH": 85,
+     "strapLen": 1100,
+     "strapW": 20
+    },
+    "M": {
+     "w": 220,
+     "h": 170,
+     "d": 40,
+     "flapH": 100,
+     "strapLen": 1200,
+     "strapW": 25
+    },
+    "L": {
+     "w": 260,
+     "h": 200,
+     "d": 50,
+     "flapH": 120,
+     "strapLen": 1300,
+     "strapW": 25
+    }
+   },
+   "sizeNote": {
+    "S": "スマホ・カード・口紅",
+    "M": "財布・スマホ・ハンカチ",
+    "L": "長財布と老眼鏡も"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2)。底『わ』、下の角を d/2 四方切り取る",
+     "seam": 10
+    },
+    {
+     "id": "flap",
+     "name": "ふた",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect-roundbottom",
+     "size": "w × flapH。下の角を半径 flapH×0.8 の丸に(表・裏の2枚)",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "strap",
+     "name": "ひも",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "(strapW×4) × (strapLen+40)",
+     "seam": 0,
+     "measureOnly": true
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "same",
+     "size": "本体1枚・ふた1枚",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体とふた(表)に接着芯をはる",
+    "ふたの裏にマグネットの凸をつけ、ふた2枚を中表で縫って表にかえす",
+    "本体の前にマグネットの凹をつける",
+    "本体の両脇を縫い、底の角を縫ってマチを作る",
+    "裏布も同じに縫う(返し口 10cm)",
+    "後ろの口にふた、両脇にひも(または Dカン通し)を仮どめ",
+    "本体を裏布に入れて口を縫い、表にかえして返し口をとじる",
+    "口を押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "マグネットボタン(さしこみ式) 1組"
+    ],
+    "M": [
+     "マグネットボタン(さしこみ式) 1組"
+    ],
+    "L": [
+     "マグネットボタン(さしこみ式) 1組"
+    ]
+   }
+  },
+  {
+   "id": "sh-boston",
+   "name": "ミニボストン",
+   "group": "shoulder",
+   "level": 3,
+   "trend": true,
+   "desc": "ころんとした筒の形で、上はファスナー。手さげにも肩かけにもなります。",
+   "family": "cylinder",
+   "closure": "zip",
+   "shape": {
+    "corner": 30,
+    "flap": null,
+    "topW": null,
+    "pocket": null,
+    "axis": "horizontal"
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 300,
+      "M": 350,
+      "L": 400
+     },
+     "width": {
+      "S": 25,
+      "M": 25,
+      "L": 30
+     },
+     "pos": "前と後ろに1本ずつ"
+    },
+    {
+     "type": "shoulder",
+     "len": {
+      "S": 1100,
+      "M": 1200,
+      "L": 1300
+     },
+     "width": {
+      "S": 20,
+      "M": 25,
+      "L": 25
+     },
+     "pos": "両横の Dカン(取りはずし)"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 260,
+     "h": 160,
+     "d": 120,
+     "handleLen": 300,
+     "handleW": 25,
+     "strapLen": 1100,
+     "zip": 300
+    },
+    "M": {
+     "w": 320,
+     "h": 200,
+     "d": 140,
+     "handleLen": 350,
+     "handleW": 25,
+     "strapLen": 1200,
+     "zip": 400
+    },
+    "L": {
+     "w": 400,
+     "h": 240,
+     "d": 180,
+     "handleLen": 400,
+     "handleW": 30,
+     "strapLen": 1300,
+     "zip": 400
+    }
+   },
+   "sizeNote": {
+    "S": "お財布・ポーチ・水",
+    "M": "おでかけの荷物ひとそろい",
+    "L": "1泊の小旅行に"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体(前・底・後ろ)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "w × (h + d/2)。底の中心を『わ』。上の口にファスナー",
+     "seam": 10
+    },
+    {
+     "id": "end",
+     "name": "横(両はし)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "roundrect",
+     "size": "d × h。角を半径 30mm の丸に(下は d の幅、上はファスナーで少しせまい)",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布(本体)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "lining-end",
+     "name": "裏布(横)",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "roundrect",
+     "size": "横と同じ",
+     "seam": 10
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    },
+    {
+     "id": "tab",
+     "name": "Dカン通し",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "80 × 60",
+     "seam": 0
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯(厚め)",
+     "fabric": "interfacing",
+     "cut": 3,
+     "fold": null,
+     "shape": "same",
+     "size": "本体1枚・横2枚",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体と横に厚めの接着芯をはる",
+    "持ち手を四つ折りに縫い、本体の前と後ろに縫いつける(四角とバツで丈夫に)",
+    "本体の口の両はしにファスナーを縫いつけ、筒にする",
+    "横の布に Dカン通しをはさみ、合わせ印をそろえて本体の両はしに縫う(ファスナーは半分あけておく)",
+    "曲線の縫い代に切りこみを入れ、表にかえす",
+    "裏布も同じに筒にして横をつけ、表袋に入れる",
+    "ファスナーのきわを手でまつってとじる",
+    "Dカンに肩ひもをつける"
+   ],
+   "extras": {
+    "S": [
+     "ファスナー 30cm 1本",
+     "Dカン 20mm 2個",
+     "ナスカン 20mm 2個",
+     "肩ひも 1100mm(市販でもよい)"
+    ],
+    "M": [
+     "ファスナー 40cm 1本",
+     "Dカン 25mm 2個",
+     "ナスカン 25mm 2個",
+     "肩ひも 1200mm"
+    ],
+    "L": [
+     "ファスナー 40cm 1本(ダブルファスナーがよい)",
+     "Dカン 25mm 2個",
+     "ナスカン 25mm 2個",
+     "肩ひも 1300mm",
+     "底板(あれば)"
+    ]
+   },
+   "note": "ファスナーは本体の口の長さより少し短くてよい(両はしは横の布にはさむ)。Lは口の長さ約 400mm"
+  },
+  {
+   "id": "po-flat",
+   "name": "ぺたんこファスナーポーチ",
+   "group": "pouch",
+   "level": 1,
+   "trend": false,
+   "desc": "マチのない、うすいポーチ。ファスナーつけのはじめの練習にちょうどよい形。",
+   "family": "flat",
+   "closure": "zip",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": null
+   },
+   "handles": [],
+   "sizes": {
+    "S": {
+     "w": 150,
+     "h": 100,
+     "d": 0,
+     "zip": 150
+    },
+    "M": {
+     "w": 200,
+     "h": 130,
+     "d": 0,
+     "zip": 200
+    },
+    "L": {
+     "w": 240,
+     "h": 160,
+     "d": 0,
+     "zip": 250
+    }
+   },
+   "sizeNote": {
+    "S": "おくすり・ばんそうこう",
+    "M": "化粧品・通帳",
+    "L": "母子手帳・はがき・マスク"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "w × h(前・後ろ)",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "tab",
+     "name": "つまみ(タブ)",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "40 × 60(四つ折りにして 10×60 → 二つ折り)",
+     "seam": 0,
+     "note": "なくてもよい"
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "本体と同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体に接着芯をはる",
+    "ファスナーを本体(表)と裏布ではさみ、片側を縫う",
+    "もう片側も同じように縫う",
+    "表どうし・裏どうしを合わせ、ファスナーを半分あけておく",
+    "まわりをぐるりと縫う。裏布の底に返し口 8cm をのこす",
+    "返し口から表にかえし、返し口をとじる"
+   ],
+   "extras": {
+    "S": [
+     "ファスナー 15cm 1本"
+    ],
+    "M": [
+     "ファスナー 20cm 1本"
+    ],
+    "L": [
+     "ファスナー 25cm 1本"
+    ]
+   }
+  },
+  {
+   "id": "po-box",
+   "name": "マチつきポーチ",
+   "group": "pouch",
+   "level": 2,
+   "trend": false,
+   "desc": "底にマチがあり、立てて置ける小物入れ。化粧品やお薬に。",
+   "family": "boxed",
+   "closure": "zip",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": null
+   },
+   "handles": [],
+   "sizes": {
+    "S": {
+     "w": 180,
+     "h": 110,
+     "d": 60,
+     "zip": 180
+    },
+    "M": {
+     "w": 220,
+     "h": 130,
+     "d": 80,
+     "zip": 200
+    },
+    "L": {
+     "w": 260,
+     "h": 150,
+     "d": 100,
+     "zip": 250
+    }
+   },
+   "sizeNote": {
+    "S": "お薬・はんこ",
+    "M": "化粧品・ソーイング道具",
+    "L": "旅行の洗面用具"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2)。底『わ』、下の角を d/2 四方切り取る",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "tab",
+     "name": "つまみ",
+     "fabric": "accent",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "40 × 60",
+     "seam": 0
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "つまみの布を四つ折りにして縫い、二つ折りにする(2本)",
+    "本体に接着芯をはる",
+    "本体の口の両方に、ファスナーを裏布とはさんで縫う(輪になる)",
+    "ファスナーを半分あけ、両脇をつまみをはさんで縫う。裏布の脇に返し口 8cm",
+    "底の角を表袋も裏袋も縫ってマチを作る",
+    "返し口から表にかえし、とじる"
+   ],
+   "extras": {
+    "S": [
+     "ファスナー 18cm 1本"
+    ],
+    "M": [
+     "ファスナー 20cm 1本"
+    ],
+    "L": [
+     "ファスナー 25cm 1本"
+    ]
+   }
+  },
+  {
+   "id": "po-megane",
+   "name": "めがねケース",
+   "group": "pouch",
+   "level": 1,
+   "trend": false,
+   "desc": "やわらかいキルトの、細長いめがね入れ。上の口はマグネットでとめます。",
+   "family": "flat",
+   "closure": "snap",
+   "shape": {
+    "corner": 15,
+    "flap": {
+     "h": 40,
+     "shape": "round"
+    },
+    "topW": null,
+    "pocket": null
+   },
+   "handles": [],
+   "sizes": {
+    "S": {
+     "w": 80,
+     "h": 160,
+     "d": 0,
+     "flapH": 40
+    },
+    "M": {
+     "w": 90,
+     "h": 180,
+     "d": 0,
+     "flapH": 40
+    },
+    "L": {
+     "w": 110,
+     "h": 190,
+     "d": 0,
+     "flapH": 45
+    }
+   },
+   "sizeNote": {
+    "S": "細い老眼鏡",
+    "M": "ふつうのめがね",
+    "L": "大きいめがね・サングラス"
+   },
+   "pieces": [
+    {
+     "id": "front",
+     "name": "前",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "roundrect-bottom",
+     "size": "w × h。下の角を半径 15mm",
+     "seam": 10
+    },
+    {
+     "id": "back",
+     "name": "後ろ+ふた",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "roundrect",
+     "size": "w × (h + flapH)。四すみ半径 15mm、ふたの先は半径 w/2 の丸",
+     "seam": 10
+    },
+    {
+     "id": "lining-front",
+     "name": "裏布(前)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": null,
+     "shape": "same",
+     "size": "前と同じ",
+     "seam": 10
+    },
+    {
+     "id": "lining-back",
+     "name": "裏布(後ろ+ふた)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": null,
+     "shape": "same",
+     "size": "後ろ+ふたと同じ",
+     "seam": 10
+    },
+    {
+     "id": "batting",
+     "name": "キルト芯(接着)",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "same",
+     "size": "前・後ろ+ふた",
+     "seam": 0,
+     "note": "めがねを守るため、厚みのある芯"
+    }
+   ],
+   "steps": [
+    "前と後ろ+ふたに接着キルト芯をはる",
+    "マグネットの凸をふたの裏布に、凹を前につける",
+    "前の口を裏布(前)と中表で縫い、表にかえす",
+    "後ろ+ふたも裏布と中表で、口とふたのまわりを縫い、表にかえす",
+    "前と後ろ+ふたを重ね、まわり(横と底)を縫う",
+    "縫い代をバイアステープでくるむ、または裏どうしで中に入れて縫う"
+   ],
+   "extras": {
+    "S": [
+     "マグネットボタン(うすい) 1組",
+     "バイアステープ 12.7mm × 500mm(くるむ場合)"
+    ],
+    "M": [
+     "マグネットボタン(うすい) 1組",
+     "バイアステープ 12.7mm × 550mm"
+    ],
+    "L": [
+     "マグネットボタン(うすい) 1組",
+     "バイアステープ 12.7mm × 600mm"
+    ]
+   }
+  },
+  {
+   "id": "po-gama",
+   "name": "がま口ポーチ",
+   "group": "pouch",
+   "level": 3,
+   "trend": true,
+   "desc": "パチンととじる金具の口。なつかしくて、いま また人気です。",
+   "family": "round",
+   "closure": "frame",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "frameW",
+    "pocket": null
+   },
+   "handles": [],
+   "sizes": {
+    "S": {
+     "w": 110,
+     "h": 90,
+     "d": 30,
+     "frameW": 85,
+     "frameH": 45
+    },
+    "M": {
+     "w": 150,
+     "h": 120,
+     "d": 40,
+     "frameW": 120,
+     "frameH": 55
+    },
+    "L": {
+     "w": 190,
+     "h": 150,
+     "d": 50,
+     "frameW": 150,
+     "frameH": 65
+    }
+   },
+   "sizeNote": {
+    "S": "小銭入れ(口金 8.5cm)",
+    "M": "お薬・小物(口金 12cm)",
+    "L": "化粧品・めがね(口金 15cm)"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "frame-pouch",
+     "size": "上の口は口金の形(幅 frameW・深さ frameH のアーチ)、下はふくらんだ丸(幅 w・高さ h)。両脇に『あき止まり』印(口金のちょうつがいの位置)",
+     "seam": 7,
+     "marks": "口金の中心・あき止まり"
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "frame-pouch",
+     "size": "本体と同じ",
+     "seam": 7
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "frame-pouch",
+     "size": "本体と同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体に接着芯をはる",
+    "本体2枚を中表に合わせ、あき止まりから下をぐるりと縫う(底にダーツでマチ d)",
+    "裏布も同じに縫う(返し口 6cm)",
+    "表袋と裏袋を中表に合わせ、口(あき止まりから上)を縫う",
+    "表にかえして返し口をとじ、口を押さえ縫い",
+    "口金のみぞにボンドを入れ、袋の口と紙ひもを目打ちで押しこむ",
+    "口金の両はしを当て布をしてペンチでかるくしめる"
+   ],
+   "extras": {
+    "S": [
+     "口金(角型・縫いつけでない差しこみ式) 8.5cm 1個",
+     "紙ひも 約 300mm",
+     "手芸用ボンド",
+     "目打ち・ペンチ"
+    ],
+    "M": [
+     "口金 12cm 1個",
+     "紙ひも 約 400mm",
+     "手芸用ボンド",
+     "目打ち・ペンチ"
+    ],
+    "L": [
+     "口金 15cm 1個",
+     "紙ひも 約 500mm",
+     "手芸用ボンド",
+     "目打ち・ペンチ"
+    ]
+   },
+   "note": "口金はメーカーで形がちがう。型紙の口の線は代表的な角型に合わせ、『お手もちの口金に重ねて、口の線をなおしてください』と表示する。力がいるので level3。手の力が弱い人には『縫いつけ式口金』をすすめる"
+  },
+  {
+   "id": "po-card",
+   "name": "通帳・お薬手帳ケース",
+   "group": "pouch",
+   "level": 1,
+   "trend": false,
+   "desc": "ふたつきの平らな入れもの。通帳・お薬手帳・診察券をまとめておけます。",
+   "family": "envelope",
+   "closure": "snap",
+   "shape": {
+    "corner": 0,
+    "flap": {
+     "h": "h*0.45",
+     "shape": "square"
+    },
+    "topW": null,
+    "pocket": {
+     "side": "front",
+     "w": "w",
+     "h": "h*0.5"
+    }
+   },
+   "handles": [],
+   "sizes": {
+    "S": {
+     "w": 110,
+     "h": 75,
+     "d": 0,
+     "flapH": 35
+    },
+    "M": {
+     "w": 130,
+     "h": 175,
+     "d": 0,
+     "flapH": 75
+    },
+    "L": {
+     "w": 170,
+     "h": 230,
+     "d": 0,
+     "flapH": 100
+    }
+   },
+   "sizeNote": {
+    "S": "診察券・カード",
+    "M": "通帳・お薬手帳",
+    "L": "A5 の手帳・母子手帳"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体(前・後ろ・ふた 続き)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "w × (h×2 + flapH)。下から h に折り線、さらに h に折り線(ふたの付け根)",
+     "seam": 10,
+     "marks": "折り線2本・スナップ位置"
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "pocket",
+     "name": "中のカードポケット",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "w × (h×0.5)。上『わ』",
+     "seam": 10,
+     "note": "S はなし"
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "本体と同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体に接着芯をはる",
+    "裏布にカードポケットを仮どめする",
+    "スナップ(またはマグネット)を、ふたの裏と前の表につける",
+    "本体と裏布を中表に合わせ、まわりを縫う(返し口 6cm)",
+    "表にかえして返し口をとじる",
+    "下から h の折り線で折り、両脇を端から 3mm で縫う",
+    "ふたを折って形をととのえる"
+   ],
+   "extras": {
+    "S": [
+     "スナップボタン(縫いつけ) 1組"
+    ],
+    "M": [
+     "マグネットボタン(うすい) 1組"
+    ],
+    "L": [
+     "マグネットボタン(うすい) 1組"
+    ]
+   }
+  },
+  {
+   "id": "wa-kinchaku",
+   "name": "きほんの巾着",
+   "group": "wa",
+   "level": 1,
+   "trend": false,
+   "desc": "ひもを引くと口がしまる、いちばん簡単な袋。まっすぐ縫うだけ。",
+   "family": "gathered",
+   "closure": "drawstring",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "w*0.35",
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "cord",
+     "len": {
+      "S": 500,
+      "M": 640,
+      "L": 800
+     },
+     "width": {
+      "S": 3,
+      "M": 4,
+      "L": 5
+     },
+     "note": "2本(左右から通す)"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 150,
+     "h": 180,
+     "d": 0,
+     "casing": 15,
+     "openStop": 50
+    },
+    "M": {
+     "w": 220,
+     "h": 260,
+     "d": 0,
+     "casing": 20,
+     "openStop": 60
+    },
+    "L": {
+     "w": 300,
+     "h": 350,
+     "d": 0,
+     "casing": 25,
+     "openStop": 70
+    }
+   },
+   "sizeNote": {
+    "S": "小物・お守り・小銭",
+    "M": "コップ・おやつ・下着",
+    "L": "着がえ・くつ"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "w × h。底『わ』。口の縫い代は三つ折り (casing + 10)、脇の縫い代 10",
+     "seam": [
+      "口: casing+10",
+      "脇: 10"
+     ],
+     "marks": "口から openStop の所に『あき止まり』、三つ折りの線"
+    }
+   ],
+   "steps": [
+    "本体を中表に二つ折りにして、あき止まりから下の両脇を縫う",
+    "あき止まりより上の縫い代を割って、コの字に縫う",
+    "口を三つ折りにアイロンで折り、ぐるりと縫う(ひも通し)",
+    "表にかえす",
+    "ひもを右から1本、左から1本、ぐるりと通す",
+    "ひものはしを結ぶ"
+   ],
+   "extras": {
+    "S": [
+     "丸ひも 3mm × 500mm を 2本(1000mm)",
+     "ひも通し(安全ピンでもよい)"
+    ],
+    "M": [
+     "丸ひも 4mm × 640mm を 2本(1280mm)",
+     "ひも通し"
+    ],
+    "L": [
+     "丸ひも 5mm × 800mm を 2本(1600mm)",
+     "ひも通し"
+    ]
+   },
+   "note": "裏布なし。手縫い(なみ縫い)でも作れる。ひもの長さ = w×2 + 200"
+  },
+  {
+   "id": "wa-azuma",
+   "name": "あずま袋",
+   "group": "wa",
+   "level": 1,
+   "trend": true,
+   "desc": "長い布を三つに折って、2か所縫うだけ。結んで持てて、たためばエコバッグに。",
+   "family": "azuma",
+   "closure": "tie",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "knot",
+     "len": {
+      "S": 0,
+      "M": 0,
+      "L": 0
+     },
+     "width": {
+      "S": 0,
+      "M": 0,
+      "L": 0
+     },
+     "note": "布の角を結んで持ち手にする"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "a": 200,
+     "w": 200,
+     "h": 200,
+     "d": 0
+    },
+    "M": {
+     "a": 280,
+     "w": 280,
+     "h": 280,
+     "d": 0
+    },
+    "L": {
+     "a": 330,
+     "w": 330,
+     "h": 330,
+     "d": 0
+    }
+   },
+   "sizeNote": {
+    "S": "お弁当包み・小物",
+    "M": "手ぬぐい1枚で作れる大きさ",
+    "L": "お買いもの・ふろしき代わり"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "a × 3a(たて:よこ = 1:3)。a ごとに3つの四角に分ける線",
+     "seam": 15,
+     "measureOnly": true,
+     "marks": "a ごとの区切り線2本・縫う辺の矢印",
+     "note": "まわりは 1.5cm の三つ折り(手ぬぐいなら耳はそのまま)"
+    }
+   ],
+   "steps": [
+    "布のまわりを三つ折りにして縫う(手ぬぐいなら切り口の2辺だけ)",
+    "布を横長に置き、たてに3つに区切る線をつける",
+    "左の1つ分を、まん中の上に三角に折るように重ね、下の辺を縫う",
+    "裏がえして、右の1つ分も同じように折り、反対の辺を縫う",
+    "表にかえすと袋になる。あまった2つの角を結んで持ち手にする",
+    "縫い目のはしを、もう一度かえし縫いして丈夫にする"
+   ],
+   "extras": {
+    "S": [
+     "なし(糸だけ)"
+    ],
+    "M": [
+     "手ぬぐい 1枚(34×90cm)でもよい"
+    ],
+    "L": [
+     "なし(糸だけ)"
+    ]
+   },
+   "note": "実寸 a×3a。M の a=280 は手ぬぐい(約 340×900)を 300×900 に切って三つ折りした大きさ。型紙は印刷せず『布に直接線を引く』で出す。3D は family azuma(三角が組み合った袋)"
+  },
+  {
+   "id": "wa-bento",
+   "name": "お弁当袋(マチつき巾着)",
+   "group": "wa",
+   "level": 1,
+   "trend": false,
+   "desc": "底にマチがある巾着。お弁当箱が平らに入ります。",
+   "family": "gathered",
+   "closure": "drawstring",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "w*0.4",
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "cord",
+     "len": {
+      "S": 560,
+      "M": 640,
+      "L": 720
+     },
+     "width": {
+      "S": 4,
+      "M": 4,
+      "L": 5
+     },
+     "note": "2本"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 180,
+     "h": 160,
+     "d": 100,
+     "casing": 20,
+     "openStop": 50
+    },
+    "M": {
+     "w": 220,
+     "h": 200,
+     "d": 120,
+     "casing": 20,
+     "openStop": 60
+    },
+    "L": {
+     "w": 260,
+     "h": 220,
+     "d": 140,
+     "casing": 25,
+     "openStop": 60
+    }
+   },
+   "sizeNote": {
+    "S": "小さいお弁当箱",
+    "M": "ふつうのお弁当箱とおはし",
+    "L": "2段のお弁当箱・水筒"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2)。底『わ』、下の角を d/2 四方切り取る。口は三つ折り (casing+10)",
+     "seam": [
+      "口: casing+10",
+      "脇: 10"
+     ],
+     "marks": "あき止まり"
+    },
+    {
+     "id": "lining",
+     "name": "裏布(つけるなら)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2 - casing)",
+     "seam": 10,
+     "note": "なくてもよい。つけると汚れがふきやすい(ラミネート布など)"
+    }
+   ],
+   "steps": [
+    "本体を中表に二つ折りにし、あき止まりから下の両脇を縫う",
+    "あき止まりより上の縫い代をコの字に縫う",
+    "底の角を縫ってマチを作る",
+    "口を三つ折りにして縫う(ひも通し)",
+    "表にかえして、ひもを左右から1本ずつ通す",
+    "ひものはしを結ぶ"
+   ],
+   "extras": {
+    "S": [
+     "丸ひも 4mm × 560mm を 2本",
+     "ひも通し"
+    ],
+    "M": [
+     "丸ひも 4mm × 640mm を 2本",
+     "ひも通し"
+    ],
+    "L": [
+     "丸ひも 5mm × 720mm を 2本",
+     "ひも通し"
+    ]
+   }
+  },
+  {
+   "id": "wa-shingen",
+   "name": "信玄袋",
+   "group": "wa",
+   "level": 2,
+   "trend": false,
+   "desc": "丸い底の、和装にも合う手さげ袋。ひもで口をしぼります。",
+   "family": "cylinder",
+   "closure": "drawstring",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "w*0.4",
+    "pocket": null,
+    "bottom": "circle"
+   },
+   "handles": [
+    {
+     "type": "cord",
+     "len": {
+      "S": 250,
+      "M": 300,
+      "L": 350
+     },
+     "width": {
+      "S": 5,
+      "M": 5,
+      "L": 6
+     },
+     "note": "ひもがそのまま手さげになる(2本どり)"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 190,
+     "h": 200,
+     "d": 120,
+     "bottomDia": 120,
+     "casing": 20,
+     "openStop": 50
+    },
+    "M": {
+     "w": 240,
+     "h": 240,
+     "d": 150,
+     "bottomDia": 150,
+     "casing": 20,
+     "openStop": 60
+    },
+    "L": {
+     "w": 280,
+     "h": 280,
+     "d": 180,
+     "bottomDia": 180,
+     "casing": 25,
+     "openStop": 70
+    }
+   },
+   "sizeNote": {
+    "S": "お財布とハンカチ(着物のときに)",
+    "M": "お茶会・お稽古の小物",
+    "L": "ふだんの手さげに"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体(筒)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "left",
+     "shape": "rect",
+     "size": "(π × bottomDia ÷ 2) × h。左を『わ』、右の脇1か所を縫って筒に。口は三つ折り (casing+10)",
+     "seam": [
+      "口: casing+10",
+      "脇・底: 10"
+     ],
+     "marks": "底に4等分の合わせ印・あき止まり"
+    },
+    {
+     "id": "bottom",
+     "name": "底",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": null,
+     "shape": "circle",
+     "size": "直径 bottomDia の円。4等分の合わせ印",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布(筒)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "left",
+     "shape": "rect",
+     "size": "(π × bottomDia ÷ 2) × (h - casing)",
+     "seam": 10
+    },
+    {
+     "id": "lining-bottom",
+     "name": "裏布(底)",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": null,
+     "shape": "circle",
+     "size": "底と同じ",
+     "seam": 10
+    },
+    {
+     "id": "bottomboard",
+     "name": "底板(厚紙)",
+     "fabric": "interfacing",
+     "cut": 1,
+     "fold": null,
+     "shape": "circle",
+     "size": "直径 bottomDia - 4mm",
+     "seam": 0,
+     "note": "厚紙や底板を切って入れる"
+    }
+   ],
+   "steps": [
+    "本体の脇を、あき止まりから下だけ縫って筒にする",
+    "底の円と筒を、合わせ印をそろえて縫う(筒の縫い代に細かく切りこみ)",
+    "裏布も同じに筒と底を縫う",
+    "底板を表袋と裏袋のあいだに入れ、裏袋を中に入れる",
+    "口を三つ折りにして裏袋のはしもはさみ、ぐるりと縫う(ひも通し)",
+    "ひもを左右から1本ずつ通して結ぶ"
+   ],
+   "extras": {
+    "S": [
+     "丸ひも 5mm × (190×2+250)×2 ≒ 1300mm",
+     "底板(厚紙) 直径 116mm"
+    ],
+    "M": [
+     "丸ひも 5mm × 約 1600mm",
+     "底板 直径 146mm"
+    ],
+    "L": [
+     "丸ひも 6mm × 約 1800mm",
+     "底板 直径 176mm"
+    ]
+   },
+   "note": "w はできあがりの平置きの幅(= 円周の半分)。ひも1本 = w×2 + 手さげぶん len + 結びしろ"
+  },
+  {
+   "id": "wa-bucket",
+   "name": "巾着トート",
+   "group": "wa",
+   "level": 2,
+   "trend": true,
+   "desc": "持ち手のあるトートの口に、巾着がついた袋。中身が見えず、こぼれません。",
+   "family": "boxed",
+   "closure": "drawstring",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": null,
+    "innerBagH": "kinH"
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 300,
+      "M": 400,
+      "L": 500
+     },
+     "width": {
+      "S": 25,
+      "M": 25,
+      "L": 30
+     },
+     "pos": "口の中心から左右 w*0.22"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 240,
+     "h": 200,
+     "d": 100,
+     "kinH": 120,
+     "handleLen": 300,
+     "handleW": 25,
+     "casing": 20
+    },
+    "M": {
+     "w": 300,
+     "h": 260,
+     "d": 120,
+     "kinH": 150,
+     "handleLen": 400,
+     "handleW": 25,
+     "casing": 20
+    },
+    "L": {
+     "w": 360,
+     "h": 300,
+     "d": 150,
+     "kinH": 180,
+     "handleLen": 500,
+     "handleW": 30,
+     "casing": 25
+    }
+   },
+   "sizeNote": {
+    "S": "お弁当・ペットボトル",
+    "M": "お散歩・ちょっとそこまで",
+    "L": "旅行のサブバッグに"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2)。底『わ』、角を d/2 四方切り取る",
+     "seam": 10
+    },
+    {
+     "id": "kin",
+     "name": "巾着(口布)",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "w × kinH。口は三つ折り (casing+10)。脇にあき止まり",
+     "seam": [
+      "口: casing+10",
+      "ほか: 10"
+     ],
+     "marks": "あき止まり"
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    }
+   ],
+   "steps": [
+    "持ち手を四つ折りにして縫う",
+    "巾着の布2枚を中表に、あき止まりから下の両脇を縫い、口を三つ折りにして縫う(輪)",
+    "本体の両脇を縫い、底の角を縫ってマチを作る",
+    "裏布も同じに縫う(返し口 12cm)",
+    "本体の口に、持ち手と巾着の輪(下を下向きに)を仮どめする",
+    "本体を裏布に入れて口を縫い、表にかえして返し口をとじる",
+    "口を押さえ縫いし、巾着にひもを左右から通す"
+   ],
+   "extras": {
+    "S": [
+     "丸ひも 4mm × 680mm を 2本",
+     "ひもどめ(コードストッパー) 1〜2個(あれば)"
+    ],
+    "M": [
+     "丸ひも 4mm × 800mm を 2本",
+     "ひもどめ 1〜2個"
+    ],
+    "L": [
+     "丸ひも 5mm × 920mm を 2本",
+     "ひもどめ 1〜2個"
+    ]
+   }
+  },
+  {
+   "id": "bp-knapsack",
+   "name": "ナップサック",
+   "group": "backpack",
+   "level": 1,
+   "trend": false,
+   "desc": "ひもを引くと口がしまり、そのひもでせおう袋。まっすぐ縫うだけ。",
+   "family": "backpack",
+   "closure": "drawstring",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "w*0.35",
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "backpack",
+     "len": {
+      "S": 1500,
+      "M": 1800,
+      "L": 2000
+     },
+     "width": {
+      "S": 5,
+      "M": 6,
+      "L": 7
+     },
+     "note": "丸ひも2本。口を通して底の角のループに結ぶ"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 280,
+     "h": 330,
+     "d": 0,
+     "casing": 25,
+     "openStop": 60
+    },
+    "M": {
+     "w": 350,
+     "h": 420,
+     "d": 0,
+     "casing": 25,
+     "openStop": 70
+    },
+    "L": {
+     "w": 400,
+     "h": 480,
+     "d": 0,
+     "casing": 30,
+     "openStop": 80
+    }
+   },
+   "sizeNote": {
+    "S": "お孫さん用・体操服入れ",
+    "M": "おとなの散歩・ジム",
+    "L": "上着・レジャーシートも入る"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "w × h。底『わ』。口は三つ折り (casing+10)",
+     "seam": [
+      "口: casing+10",
+      "脇: 10"
+     ],
+     "marks": "あき止まり・ループ位置(底の角)"
+    },
+    {
+     "id": "loop",
+     "name": "ループ(ひもを結ぶ所)",
+     "fabric": "accent",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "40 × 80(四つ折りにして 10×80 → 二つ折り)",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "ループの布を四つ折りにして縫い、二つ折りにする(2本)",
+    "本体を中表に二つ折りにし、底の両角にループをはさむ",
+    "あき止まりから下の両脇を縫う(ループの所は2回縫う)",
+    "あき止まりより上の縫い代をコの字に縫う",
+    "口を三つ折りにして縫う(ひも通し)",
+    "表にかえし、ひもを右から1本ぐるりと通して右のループに結ぶ。左も同じ"
+   ],
+   "extras": {
+    "S": [
+     "丸ひも 5mm × 1500mm を 2本",
+     "ひも通し"
+    ],
+    "M": [
+     "丸ひも 6mm × 1800mm を 2本",
+     "ひも通し"
+    ],
+    "L": [
+     "丸ひも 7mm × 2000mm を 2本",
+     "ひも通し"
+    ]
+   },
+   "note": "ひも1本 = w×2 + h×2 + 200 を目安(M: 700+840+200 ≒ 1800)"
+  },
+  {
+   "id": "bp-kinchaku",
+   "name": "巾着リュック",
+   "group": "backpack",
+   "level": 2,
+   "trend": true,
+   "desc": "口は巾着、背中に肩ひもがついた丸っこいリュック。長さを変えられます。",
+   "family": "backpack",
+   "closure": "drawstring",
+   "shape": {
+    "corner": 0,
+    "flap": {
+     "h": "h*0.3",
+     "shape": "round"
+    },
+    "topW": "w*0.5",
+    "pocket": {
+     "side": "front",
+     "w": "w*0.6",
+     "h": "h*0.35"
+    }
+   },
+   "handles": [
+    {
+     "type": "backpack",
+     "len": {
+      "S": 650,
+      "M": 750,
+      "L": 850
+     },
+     "width": {
+      "S": 25,
+      "M": 25,
+      "L": 30
+     },
+     "note": "テープ2本+送りカンで長さを変える"
+    },
+    {
+     "type": "loop",
+     "len": {
+      "S": 150,
+      "M": 150,
+      "L": 180
+     },
+     "width": {
+      "S": 20,
+      "M": 20,
+      "L": 25
+     },
+     "note": "上の手さげ"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 250,
+     "h": 300,
+     "d": 100,
+     "casing": 25,
+     "flapH": 90,
+     "strapLen": 650
+    },
+    "M": {
+     "w": 300,
+     "h": 360,
+     "d": 120,
+     "casing": 25,
+     "flapH": 110,
+     "strapLen": 750
+    },
+    "L": {
+     "w": 340,
+     "h": 420,
+     "d": 140,
+     "casing": 30,
+     "flapH": 130,
+     "strapLen": 850
+    }
+   },
+   "sizeNote": {
+    "S": "お散歩の小物",
+    "M": "A4 と水筒",
+    "L": "1日のおでかけ・山歩き"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "w × (h + d/2)。底『わ』、角を d/2 四方切り取る",
+     "seam": 10
+    },
+    {
+     "id": "kin",
+     "name": "巾着(口布)",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "w × 150。口は三つ折り (casing+10)",
+     "seam": [
+      "口: casing+10",
+      "ほか: 10"
+     ]
+    },
+    {
+     "id": "flap",
+     "name": "ふた",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect-roundbottom",
+     "size": "(w×0.8) × flapH。下の角を丸く",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "pocket",
+     "name": "前ポケット",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "(w×0.6) × (h×0.35)。上『わ』",
+     "seam": 10
+    },
+    {
+     "id": "tab",
+     "name": "Dカン通し(底)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(テープ幅×4) × 70",
+     "seam": 0
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体に接着芯、前に前ポケットを縫いつける",
+    "ふた2枚を中表に縫って表にかえす。上の手さげも縫う",
+    "後ろの口の中心に、肩ひもテープ2本・手さげ・ふたを重ねて仮どめ",
+    "後ろの底の両角に、Dカン通しを仮どめ",
+    "本体の両脇と底の角を縫う(マチ)",
+    "巾着の口布を輪にして口を三つ折りに縫い、本体の口に仮どめ",
+    "裏布を縫い(返し口)、本体と口を縫い合わせて表にかえす",
+    "肩ひもを送りカンに通し、Dカンを通して折り返して縫う",
+    "巾着にひもを通す"
+   ],
+   "extras": {
+    "S": [
+     "テープ 25mm × 1600mm(肩ひも)",
+     "送りカン 25mm 2個",
+     "Dカン 25mm 2個",
+     "丸ひも 4mm × 700mm 1本",
+     "ひもどめ 1個"
+    ],
+    "M": [
+     "テープ 25mm × 1800mm",
+     "送りカン 25mm 2個",
+     "Dカン 25mm 2個",
+     "丸ひも 4mm × 800mm 1本",
+     "ひもどめ 1個"
+    ],
+    "L": [
+     "テープ 30mm × 2000mm",
+     "送りカン 30mm 2個",
+     "Dカン 30mm 2個",
+     "丸ひも 5mm × 900mm 1本",
+     "ひもどめ 1個"
+    ]
+   }
+  },
+  {
+   "id": "bp-flap",
+   "name": "ふたつきリュック",
+   "group": "backpack",
+   "level": 3,
+   "trend": false,
+   "desc": "大きなふたとマチのある、しっかりしたリュック。毎日のおでかけに。",
+   "family": "backpack",
+   "closure": "snap",
+   "shape": {
+    "corner": 20,
+    "flap": {
+     "h": "h*0.45",
+     "shape": "round"
+    },
+    "topW": null,
+    "pocket": {
+     "side": "front",
+     "w": "w*0.7",
+     "h": "h*0.35"
+    }
+   },
+   "handles": [
+    {
+     "type": "backpack",
+     "len": {
+      "S": 650,
+      "M": 750,
+      "L": 850
+     },
+     "width": {
+      "S": 30,
+      "M": 30,
+      "L": 38
+     },
+     "note": "布の肩ひも(上)+テープ(下)と送りカン"
+    },
+    {
+     "type": "loop",
+     "len": {
+      "S": 150,
+      "M": 180,
+      "L": 200
+     },
+     "width": {
+      "S": 25,
+      "M": 25,
+      "L": 25
+     },
+     "note": "上の手さげ"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 240,
+     "h": 300,
+     "d": 100,
+     "flapH": 135,
+     "strapLen": 650,
+     "strapW": 30
+    },
+    "M": {
+     "w": 280,
+     "h": 360,
+     "d": 120,
+     "flapH": 160,
+     "strapLen": 750,
+     "strapW": 30
+    },
+    "L": {
+     "w": 320,
+     "h": 400,
+     "d": 140,
+     "flapH": 180,
+     "strapLen": 850,
+     "strapW": 38
+    }
+   },
+   "sizeNote": {
+    "S": "お財布・水筒・タオル",
+    "M": "A4 とお弁当",
+    "L": "1泊のおでかけ"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体(前・後ろ)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "roundrect-bottom",
+     "size": "w × h。下の角を半径 20mm",
+     "seam": 10
+    },
+    {
+     "id": "gusset",
+     "name": "マチ(横と底の帯)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "d × (h×2 + w)",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "flap",
+     "name": "ふた",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect-roundbottom",
+     "size": "w × flapH。下の角を半径 flapH×0.5",
+     "seam": 10
+    },
+    {
+     "id": "pocket",
+     "name": "前ポケット",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "(w×0.7) × (h×0.35)。上『わ』",
+     "seam": 10
+    },
+    {
+     "id": "strap",
+     "name": "肩ひも(上の部分)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(strapW×2+20) × 400。中に厚い芯をはさむ",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "lining",
+     "name": "裏布(本体・マチ)",
+     "fabric": "lining",
+     "cut": 3,
+     "fold": null,
+     "shape": "same",
+     "size": "本体2枚・マチ1枚と同じ",
+     "seam": 10
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯(厚め)",
+     "fabric": "interfacing",
+     "cut": 4,
+     "fold": null,
+     "shape": "same",
+     "size": "本体2枚・マチ1枚・ふた1枚",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体・マチ・ふたに厚めの接着芯をはる",
+    "前ポケットを前の本体に縫いつける",
+    "ふた2枚を中表に縫って表にかえし、マグネットをつける",
+    "肩ひもを縫い、下のテープは送りカンとDカンで組む",
+    "後ろの本体に、肩ひも・手さげ・ふたを縫いつける(何回も重ねて丈夫に)",
+    "マチを前の本体と後ろの本体のまわりに縫う(下の角のテープもはさむ)",
+    "裏布も同じに組み立てる(返し口)",
+    "表袋を裏袋に入れて口を縫い、表にかえして返し口をとじる",
+    "口を押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "マグネットボタン 1組",
+     "テープ 30mm × 700mm",
+     "送りカン 30mm 2個",
+     "Dカン 30mm 2個",
+     "肩ひも用の厚い芯 2枚"
+    ],
+    "M": [
+     "マグネットボタン 1組",
+     "テープ 30mm × 800mm",
+     "送りカン 30mm 2個",
+     "Dカン 30mm 2個",
+     "肩ひも用の厚い芯 2枚"
+    ],
+    "L": [
+     "マグネットボタン 1組",
+     "テープ 38mm × 900mm",
+     "送りカン 38mm 2個",
+     "Dカン 38mm 2個",
+     "肩ひも用の厚い芯 2枚"
+    ]
+   },
+   "note": "布が重なって厚くなるので、家庭用ミシンなら針は 14〜16号、ゆっくり縫う"
+  },
+  {
+   "id": "bp-body",
+   "name": "ボディバッグ",
+   "group": "backpack",
+   "level": 2,
+   "trend": true,
+   "desc": "体の前やうしろに、ななめにかけるバッグ。両手があいて歩きやすい。",
+   "family": "halfmoon",
+   "closure": "zip",
+   "shape": {
+    "corner": 40,
+    "flap": null,
+    "topW": null,
+    "pocket": {
+     "side": "front",
+     "w": "w*0.6",
+     "h": "h*0.4"
+    }
+   },
+   "handles": [
+    {
+     "type": "cross",
+     "len": {
+      "S": 1200,
+      "M": 1300,
+      "L": 1400
+     },
+     "width": {
+      "S": 25,
+      "M": 25,
+      "L": 30
+     },
+     "note": "テープ+送りカンで長さを変える"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 260,
+     "h": 150,
+     "d": 60,
+     "zip": 250,
+     "strapLen": 1200,
+     "strapW": 25
+    },
+    "M": {
+     "w": 300,
+     "h": 170,
+     "d": 80,
+     "zip": 300,
+     "strapLen": 1300,
+     "strapW": 25
+    },
+    "L": {
+     "w": 340,
+     "h": 190,
+     "d": 100,
+     "zip": 300,
+     "strapLen": 1400,
+     "strapW": 30
+    }
+   },
+   "sizeNote": {
+    "S": "スマホ・お財布",
+    "M": "長財布・水・ハンカチ",
+    "L": "折りたたみ傘や小さい上着も"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体(前・後ろ)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "roundrect",
+     "size": "w × h。下の角は半径 40mm、上はゆるいカーブ",
+     "seam": 10
+    },
+    {
+     "id": "gusset",
+     "name": "マチ(下)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "d × (本体の下まわりの長さ)",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "zipgusset",
+     "name": "ファスナーマチ(上)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(d/2 + 5) × zip",
+     "seam": 10
+    },
+    {
+     "id": "pocket",
+     "name": "前ポケット",
+     "fabric": "accent",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "(w×0.6) × (h×0.4)",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布(本体・マチ)",
+     "fabric": "lining",
+     "cut": 3,
+     "fold": null,
+     "shape": "same",
+     "size": "本体2枚・マチ1枚と同じ",
+     "seam": 10
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "same",
+     "size": "本体と同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体に接着芯、前ポケットを縫いつける",
+    "ファスナーの両側にファスナーマチを縫う",
+    "上マチと下マチを、両はしにテープ(Dカン)をはさんで縫い、輪にする",
+    "輪のマチを前の本体のまわりに縫う(曲線は切りこみ)",
+    "ファスナーをあけて後ろの本体を縫う",
+    "裏布も組んで中に入れ、ファスナーのきわをまつる",
+    "肩ひもを送りカンに通してつける"
+   ],
+   "extras": {
+    "S": [
+     "ファスナー 25cm 1本",
+     "テープ 25mm × 1300mm",
+     "送りカン 25mm 1個",
+     "Dカン 25mm 2個"
+    ],
+    "M": [
+     "ファスナー 30cm 1本",
+     "テープ 25mm × 1400mm",
+     "送りカン 25mm 1個",
+     "Dカン 25mm 2個"
+    ],
+    "L": [
+     "ファスナー 30cm 1本",
+     "テープ 30mm × 1500mm",
+     "送りカン 30mm 1個",
+     "Dカン 30mm 2個"
+    ]
+   }
+  },
+  {
+   "id": "bp-waist",
+   "name": "ウエストポーチ",
+   "group": "backpack",
+   "level": 2,
+   "trend": false,
+   "desc": "腰にまく小さなバッグ。お散歩や旅行で、さっと出し入れできます。",
+   "family": "trapezoid",
+   "closure": "zip",
+   "shape": {
+    "corner": 15,
+    "flap": null,
+    "topW": "w+40",
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "cross",
+     "len": {
+      "S": 1000,
+      "M": 1100,
+      "L": 1200
+     },
+     "width": {
+      "S": 25,
+      "M": 25,
+      "L": 25
+     },
+     "note": "ベルト(テープ+バックル+送りカン)。腰にまく"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 180,
+     "h": 110,
+     "d": 40,
+     "zip": 200,
+     "beltLen": 1000
+    },
+    "M": {
+     "w": 220,
+     "h": 130,
+     "d": 50,
+     "zip": 250,
+     "beltLen": 1100
+    },
+    "L": {
+     "w": 260,
+     "h": 150,
+     "d": 60,
+     "zip": 300,
+     "beltLen": 1200
+    }
+   },
+   "sizeNote": {
+    "S": "スマホ・カギ",
+    "M": "お財布・スマホ・ハンカチ",
+    "L": "小さいペットボトルも"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体(前・後ろ)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "trapezoid",
+     "size": "上の幅 w+40、下の幅 w、高さ h。下の角は半径 15mm",
+     "seam": 10
+    },
+    {
+     "id": "gusset",
+     "name": "マチ(横と底)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "d × (本体の横と底のまわりの長さ)",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "beltloop",
+     "name": "ベルト通し(後ろ)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "rect",
+     "size": "(w×0.7) × 40(二つ折り)。テープを縫いつけてもよい",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 3,
+     "fold": null,
+     "shape": "same",
+     "size": "本体2枚・マチ1枚と同じ",
+     "seam": 10
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "same",
+     "size": "本体と同じ",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体に接着芯をはる",
+    "後ろの本体にベルトを横に縫いつける(両はしは脇の縫い代にはさむ)",
+    "本体の上の口にファスナーを、表布と裏布ではさんで縫う(前・後ろ)",
+    "マチを、前の本体の横と底に縫う",
+    "ファスナーをあけて後ろの本体にもマチを縫う",
+    "裏布のマチも同じに縫い、まつってとじる",
+    "ベルトにバックルと送りカンをつける"
+   ],
+   "extras": {
+    "S": [
+     "ファスナー 20cm 1本",
+     "テープ 25mm × 1000mm",
+     "プラスチックバックル 25mm 1組",
+     "送りカン 25mm 1個"
+    ],
+    "M": [
+     "ファスナー 25cm 1本",
+     "テープ 25mm × 1100mm",
+     "プラスチックバックル 25mm 1組",
+     "送りカン 25mm 1個"
+    ],
+    "L": [
+     "ファスナー 30cm 1本",
+     "テープ 25mm × 1200mm",
+     "プラスチックバックル 25mm 1組",
+     "送りカン 25mm 1個"
+    ]
+   }
+  },
+  {
+   "id": "out-eco",
+   "name": "たためるエコバッグ",
+   "group": "outing",
+   "level": 2,
+   "trend": true,
+   "desc": "レジ袋と同じ形の、うすくて軽いエコバッグ。小さくたたんでバッグに入れておけます。",
+   "family": "trapezoid",
+   "closure": null,
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "w",
+    "pocket": null,
+    "handleCut": true
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 150,
+      "M": 180,
+      "L": 200
+     },
+     "width": {
+      "S": 50,
+      "M": 60,
+      "L": 70
+     },
+     "note": "本体と続きの持ち手(切り抜き)"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 280,
+     "h": 280,
+     "d": 100,
+     "handleH": 150,
+     "handleW": 50
+    },
+    "M": {
+     "w": 350,
+     "h": 350,
+     "d": 140,
+     "handleH": 180,
+     "handleW": 60
+    },
+    "L": {
+     "w": 420,
+     "h": 400,
+     "d": 160,
+     "handleH": 200,
+     "handleW": 70
+    }
+   },
+   "sizeNote": {
+    "S": "コンビニのお買いもの",
+    "M": "スーパーで2〜3日分",
+    "L": "まとめ買い・お米 5kg も"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体(持ち手と続き)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": "left",
+     "shape": "rejibukuro",
+     "size": "半分の型紙: 横 w/2 + d/2、たて h + handleH。上の中央を U 字に切り抜き(深さ handleH、幅 w/2 - handleW)、持ち手の先は幅 handleW。左が『わ』(本体の中心)",
+     "seam": 10,
+     "marks": "マチのたたみ線(横から d/2)・持ち手の先の合わせ印"
+    },
+    {
+     "id": "bias",
+     "name": "口のふちどり(バイアス)",
+     "fabric": "accent",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "40 × (U字の長さ + 20)",
+     "seam": 0,
+     "measureOnly": true,
+     "note": "市販のバイアステープでもよい"
+    },
+    {
+     "id": "sack",
+     "name": "しまう袋(内ポケット)",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect",
+     "size": "120 × 140",
+     "seam": 10,
+     "note": "たたんでこの袋に入れる"
+    }
+   ],
+   "steps": [
+    "前と後ろを中表に合わせ、両脇と底を縫う(縫い代は袋縫いかジグザグ)",
+    "底の角を縫ってマチを作る(または脇を中に折りたたんでレジ袋のひだにする)",
+    "持ち手の先どうしを中表に縫い、輪にする",
+    "U字の口と持ち手の外がわを、バイアスでくるんで縫う(または三つ折り)",
+    "しまう袋を作り、内がわの脇に縫いつける",
+    "持ち手の先のつなぎ目を、もう一度押さえ縫いして丈夫にする"
+   ],
+   "extras": {
+    "S": [
+     "バイアステープ 12.7mm 両折り × 約 1500mm",
+     "スナップボタン 1組(たたんでとめる)"
+    ],
+    "M": [
+     "バイアステープ 12.7mm 両折り × 約 1800mm",
+     "スナップボタン 1組"
+    ],
+    "L": [
+     "バイアステープ 12.7mm 両折り × 約 2100mm",
+     "スナップボタン 1組"
+    ]
+   },
+   "note": "布はうすいナイロン・ポリエステル(はっ水)か、うすい綿ローン。裏布なし"
+  },
+  {
+   "id": "out-marche",
+   "name": "ギャザーのマルシェバッグ",
+   "group": "outing",
+   "level": 2,
+   "trend": true,
+   "desc": "口にギャザーを寄せた、ふんわりした買いものバッグ。市場(マルシェ)へ行く気分で。",
+   "family": "gathered",
+   "closure": null,
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "bandW",
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 300,
+      "M": 350,
+      "L": 450
+     },
+     "width": {
+      "S": 30,
+      "M": 30,
+      "L": 35
+     },
+     "pos": "口布の両はし近く"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 300,
+     "h": 220,
+     "d": 120,
+     "bandW": 260,
+     "bandH": 50,
+     "handleLen": 300,
+     "handleW": 30
+    },
+    "M": {
+     "w": 380,
+     "h": 280,
+     "d": 150,
+     "bandW": 320,
+     "bandH": 60,
+     "handleLen": 350,
+     "handleW": 30
+    },
+    "L": {
+     "w": 440,
+     "h": 320,
+     "d": 180,
+     "bandW": 380,
+     "bandH": 70,
+     "handleLen": 450,
+     "handleW": 35
+    }
+   },
+   "sizeNote": {
+    "S": "パン・野菜を少し",
+    "M": "お買いもの1回分",
+    "L": "肩にもかけられる・ピクニックに"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "(w × 1.4) × (h - bandH + d/2)。底『わ』、角を d/2 四方切り取る。口に『ギャザーを寄せる所』の印",
+     "seam": 10
+    },
+    {
+     "id": "band",
+     "name": "口布",
+     "fabric": "accent",
+     "cut": 2,
+     "fold": "top",
+     "shape": "rect",
+     "size": "bandW × bandH。上を『わ』に二つ折り(前・後ろ各1)",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "bottom",
+     "shape": "rect-boxcorner",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "accent",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    }
+   ],
+   "steps": [
+    "持ち手を四つ折りにして縫う",
+    "本体の両脇と底の角を縫う。裏布も同じ(返し口)",
+    "表袋の中に裏袋を外表で入れ、口を重ねて仮どめ",
+    "口の縫い代に、あらい目のミシン2本を縫い、糸を引いてギャザーを寄せる(口布の幅に合わせる)",
+    "口布2枚の脇を縫って輪にし、持ち手をはさむ",
+    "口布を袋の口にかぶせて縫う",
+    "返し口をとじ、口布のきわを押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "なし(糸だけ)"
+    ],
+    "M": [
+     "なし(糸だけ)"
+    ],
+    "L": [
+     "マグネットボタン 1組(つけるなら)"
+    ]
+   },
+   "note": "ギャザーの量: 本体の口の長さ = 口布の長さ × 1.3〜1.5。布はやわらかい綿・麻がよい"
+  },
+  {
+   "id": "out-balloon",
+   "name": "ころんとバルーンバッグ",
+   "group": "outing",
+   "level": 2,
+   "trend": true,
+   "desc": "上と下にギャザーを寄せた、風船のように丸い手さげ。かわいくて人気の形。",
+   "family": "round",
+   "closure": null,
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "bandW",
+    "pocket": null,
+    "bottom": "oval"
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 250,
+      "M": 300,
+      "L": 350
+     },
+     "width": {
+      "S": 25,
+      "M": 30,
+      "L": 30
+     },
+     "note": "短めの手さげ"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 260,
+     "h": 200,
+     "d": 100,
+     "bandW": 200,
+     "bandH": 40,
+     "bottomW": 180,
+     "handleLen": 250,
+     "handleW": 25
+    },
+    "M": {
+     "w": 320,
+     "h": 240,
+     "d": 120,
+     "bandW": 240,
+     "bandH": 50,
+     "bottomW": 220,
+     "handleLen": 300,
+     "handleW": 30
+    },
+    "L": {
+     "w": 380,
+     "h": 280,
+     "d": 140,
+     "bandW": 280,
+     "bandH": 50,
+     "bottomW": 260,
+     "handleLen": 350,
+     "handleW": 30
+    }
+   },
+   "sizeNote": {
+    "S": "お財布とハンカチ",
+    "M": "ちょっとしたおでかけ",
+    "L": "お弁当や上着も"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect-roundside",
+     "size": "(w × 1.3) × (h - bandH)。前・後ろ。上と下にギャザー印、両脇はゆるくふくらませる",
+     "seam": 10
+    },
+    {
+     "id": "bottom",
+     "name": "底",
+     "fabric": "outer",
+     "cut": 1,
+     "fold": null,
+     "shape": "oval",
+     "size": "bottomW × d の だ円。4等分の合わせ印",
+     "seam": 10
+    },
+    {
+     "id": "band",
+     "name": "口布",
+     "fabric": "accent",
+     "cut": 2,
+     "fold": "top",
+     "shape": "rect",
+     "size": "bandW × bandH。上『わ』",
+     "seam": 10
+    },
+    {
+     "id": "lining",
+     "name": "裏布(本体・底)",
+     "fabric": "lining",
+     "cut": 3,
+     "fold": null,
+     "shape": "same",
+     "size": "本体2枚・底1枚と同じ",
+     "seam": 10
+    },
+    {
+     "id": "handle",
+     "name": "持ち手",
+     "fabric": "accent",
+     "cut": 2,
+     "fold": null,
+     "shape": "rect",
+     "size": "(handleW×4) × (handleLen+60)",
+     "seam": 0,
+     "measureOnly": true
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯(底・口布)",
+     "fabric": "interfacing",
+     "cut": 3,
+     "fold": null,
+     "shape": "same",
+     "size": "底1枚・口布2枚",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "底と口布に接着芯をはる。持ち手を縫う",
+    "本体2枚の両脇を縫って筒にする",
+    "筒の下にギャザーを寄せ、底のだ円に合わせ印をそろえて縫う",
+    "裏布も同じに筒と底を縫う(返し口)",
+    "表袋と裏袋を外表に重ね、口にギャザーを寄せる",
+    "口布を輪にして持ち手をはさみ、口にかぶせて縫う",
+    "返し口をとじ、口布を押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "なし(糸だけ)",
+     "底板(あれば)"
+    ],
+    "M": [
+     "なし(糸だけ)",
+     "底板(あれば)"
+    ],
+    "L": [
+     "マグネットボタン 1組(つけるなら)",
+     "底板(あれば)"
+    ]
+   }
+  },
+  {
+   "id": "out-knot",
+   "name": "むすびバッグ",
+   "group": "outing",
+   "level": 2,
+   "trend": true,
+   "desc": "長い持ち手を短い持ち手に通して結ぶ、手首にかけるバッグ。ノットバッグともいいます。",
+   "family": "knot",
+   "closure": "tie",
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": null,
+    "pocket": null
+   },
+   "handles": [
+    {
+     "type": "knot",
+     "len": {
+      "S": 300,
+      "M": 380,
+      "L": 450
+     },
+     "width": {
+      "S": 40,
+      "M": 45,
+      "L": 50
+     },
+     "note": "長い持ち手の長さ。短い方は len の 0.4 倍。本体と続き"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 200,
+     "h": 200,
+     "d": 60,
+     "longH": 300,
+     "shortH": 120,
+     "handleW": 40
+    },
+    "M": {
+     "w": 260,
+     "h": 260,
+     "d": 80,
+     "longH": 380,
+     "shortH": 150,
+     "handleW": 45
+    },
+    "L": {
+     "w": 320,
+     "h": 300,
+     "d": 100,
+     "longH": 450,
+     "shortH": 180,
+     "handleW": 50
+    }
+   },
+   "sizeNote": {
+    "S": "スマホ・お財布(手首にかける)",
+    "M": "ハンカチ・ポーチも入る",
+    "L": "サブバッグ・お弁当"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体(持ち手と続き)",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "knot-bag",
+     "size": "幅 w、高さ h の袋の上に、左に長い持ち手(longH)、右に短い持ち手(shortH)がのびる形。持ち手の幅 handleW、内がわはなめらかな U 字。前・後ろ各1枚(後ろは左右反転)",
+     "seam": 7,
+     "marks": "マチのつまみ位置・返し口"
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "knot-bag",
+     "size": "本体と同じ",
+     "seam": 7
+    },
+    {
+     "id": "interfacing",
+     "name": "接着芯",
+     "fabric": "interfacing",
+     "cut": 2,
+     "fold": null,
+     "shape": "knot-bag",
+     "size": "本体と同じ(うすい芯)",
+     "seam": 0
+    }
+   ],
+   "steps": [
+    "本体にうすい接着芯をはる",
+    "表布2枚を中表に、両脇と底を縫い、底の角をつまんでマチを作る",
+    "裏布も同じに縫う(底に返し口 10cm)",
+    "表袋と裏袋を中表に重ね、持ち手の内がわ(U字)と外がわを縫う。持ち手の先は縫わない",
+    "曲線の縫い代に切りこみを入れ、返し口から表にかえす",
+    "持ち手の先を表布・裏布それぞれ中表で縫い合わせて輪にする",
+    "持ち手の外がわの残りをまつり、返し口をとじる"
+   ],
+   "extras": {
+    "S": [
+     "なし(糸だけ)"
+    ],
+    "M": [
+     "なし(糸だけ)"
+    ],
+    "L": [
+     "なし(糸だけ)"
+    ]
+   },
+   "note": "曲線が多いので level2。マチなしにすると(d=0)もっとかんたん"
+  },
+  {
+   "id": "out-granny",
+   "name": "グラニーバッグ",
+   "group": "outing",
+   "level": 2,
+   "trend": false,
+   "desc": "おばあちゃんの手さげ、という名前の、ギャザーたっぷりの大きな袋。なつかしく、たくさん入ります。",
+   "family": "gathered",
+   "closure": null,
+   "shape": {
+    "corner": 0,
+    "flap": null,
+    "topW": "bandW",
+    "pocket": {
+     "side": "back",
+     "w": 180,
+     "h": 150
+    }
+   },
+   "handles": [
+    {
+     "type": "loop",
+     "len": {
+      "S": 200,
+      "M": 250,
+      "L": 300
+     },
+     "width": {
+      "S": 40,
+      "M": 45,
+      "L": 50
+     },
+     "note": "口布がそのまま持ち手になる(輪)"
+    }
+   ],
+   "sizes": {
+    "S": {
+     "w": 300,
+     "h": 260,
+     "d": 80,
+     "bandW": 180,
+     "bandH": 40,
+     "handleLen": 200
+    },
+    "M": {
+     "w": 380,
+     "h": 320,
+     "d": 100,
+     "bandW": 220,
+     "bandH": 45,
+     "handleLen": 250
+    },
+    "L": {
+     "w": 440,
+     "h": 360,
+     "d": 120,
+     "bandW": 260,
+     "bandH": 50,
+     "handleLen": 300
+    }
+   },
+   "sizeNote": {
+    "S": "お財布・ハンカチ・ポーチ",
+    "M": "A4 も入る・毎日の手さげ",
+    "L": "編みもの道具・旅行に"
+   },
+   "pieces": [
+    {
+     "id": "body",
+     "name": "本体",
+     "fabric": "outer",
+     "cut": 2,
+     "fold": null,
+     "shape": "trapezoid-round",
+     "size": "上の幅 w×1.2、下の幅 w×0.9、高さ h。下の角は大きな丸(半径 d)。上にギャザー印",
+     "seam": 10
+    },
+    {
+     "id": "band",
+     "name": "口布(持ち手と続き)",
+     "fabric": "accent",
+     "cut": 4,
+     "fold": null,
+     "shape": "rect",
+     "size": "(bandW + handleLen) × (bandH×2)。たてに二つ折りで使う(表2・裏2)。中央 bandW が袋の口、のこりが持ち手",
+     "seam": 10,
+     "measureOnly": true
+    },
+    {
+     "id": "lining",
+     "name": "裏布",
+     "fabric": "lining",
+     "cut": 2,
+     "fold": null,
+     "shape": "trapezoid-round",
+     "size": "本体と同じ",
+     "seam": 10
+    },
+    {
+     "id": "inpocket",
+     "name": "内ポケット",
+     "fabric": "lining",
+     "cut": 1,
+     "fold": "top",
+     "shape": "rect",
+     "size": "180 × 150。上『わ』",
+     "seam": 10
+    }
+   ],
+   "steps": [
+    "内ポケットを裏布に縫いつける",
+    "本体2枚を中表に、両脇と底を縫う。裏布も同じ(返し口)",
+    "表袋と裏袋を外表に重ね、前と後ろの口にそれぞれギャザーを寄せる",
+    "口布の持ち手部分を、表・裏どうしで中表に縫い、表にかえす",
+    "前と後ろの口に口布をかぶせて縫う(持ち手は前後でつながって輪になる)",
+    "返し口をとじ、口布を押さえ縫い"
+   ],
+   "extras": {
+    "S": [
+     "なし(糸だけ)"
+    ],
+    "M": [
+     "なし(糸だけ)"
+    ],
+    "L": [
+     "なし(糸だけ)"
+    ]
+   },
+   "note": "昔からある形で、手芸本の定番。w は平置きでのいちばん広い所の幅"
+  }
+ ]
+}
