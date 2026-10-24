@@ -234,7 +234,10 @@ function familyConfig(S) {
   let closure = S.closure || null;
   const knapsack = fam === 'backpack' && hs.some(x => x.type === 'cord') && !hs.some(x => x.type === 'backpack');
   if (knapsack && !closure) closure = 'drawstring';
-  const cfg = { fam, w, h, d, W, closure, knapsack, dent: 0.35, sag: h * 0.012, bulge: 0.04, closedTop: false,
+  const innerBag = closure === 'drawstring' && (num(S.innerBagH, 0) > 0 || (['boxed', 'trapezoid', 'flat', 'gusset'].includes(fam) && hs.some(x => x.type === 'loop' || x.type === 'shoulder')));
+  if (innerBag) closure = null;
+  const cordHandles = closure === 'drawstring' && fam !== 'backpack' && hs.some(x => x.type === 'cord');
+  const cfg = { fam, w, h, d, W, closure, knapsack, innerBag, cordHandles, dent: 0.35, sag: h * 0.012, bulge: 0.04, closedTop: false,
     sideSeams: [0.25, 0.75], bottomEdge: false, topStitch: true,
     zipStyle: S.zip === 'around' || S.zip === 'top' ? S.zip : (fam === 'backpack' ? 'around' : 'top') };
   let D, r;
@@ -257,7 +260,7 @@ function familyConfig(S) {
         const b = D * k * (1 + 0.04 * Math.sin(PI * t));
         return { a, b, r: b * 0.75 };
       };
-      cfg.closedTop = true; if (!closure) cfg.closure = 'zip'; cfg.bottomEdge = true; break;
+      cfg.closedTop = !closure || closure === 'zip'; if (!closure && !innerBag) cfg.closure = 'zip'; cfg.bottomEdge = true; break;
     }
     case 'cylinder': {
       const A = W, B = d > 0 ? d / 2 : W;
@@ -291,6 +294,21 @@ function familyConfig(S) {
     }
     case 'round': {
       D = Math.max(d / 2, w * 0.17); const Wt = num(S.topW, w * 0.72) / 2;
+      if (closure !== 'frame' && closure !== 'zip') {   // バルーン: ふっくら、口は帯(口布)
+        const band = S.band != null && num(S.band, 0) > 0 ? clamp(num(S.band, 40), 10, h * 0.4) : clamp(h * 0.12, 20, 50);
+        const yb = h - band, Bw = clamp(num(S.bottomW, w * 0.6), 20, w) / 2, Dt = Math.min(D * 0.6, Wt * 0.55);
+        const oval = S.bottom === 'oval' || S.bottom === 'flat' || S.bottomW != null;
+        cfg.prof = t => {
+          const y = t * h;
+          if (y >= yb) return { a: Wt * 1.02, b: Dt, r: Dt * 0.95 };
+          const q = y / yb;
+          let a, b;
+          if (q < 0.45) { const f = Math.sin(PI / 2 * q / 0.45); a = lerp(oval ? Bw : W * 0.35, W, Math.pow(f, 0.8)); b = lerp(oval ? D * 0.78 : D * 0.4, D, Math.pow(f, 0.8)); }
+          else { const k = smooth(0.45, 1, q); a = lerp(W, Wt, k); b = lerp(D, Dt, k); }
+          return { a, b, r: b * 0.95, wave: 0.045 * smooth(0.6, 1, q), waveN: 12 };
+        };
+        cfg.dent = 0.08; cfg.sag = 0; cfg.bulge = 0; cfg.gatherBand = band; cfg.bottomEdge = true; break;
+      }
       const topB = closure === 'frame' ? D * 0.2 : D * 0.45;
       cfg.prof = t => {
         let a, b;
@@ -298,7 +316,7 @@ function familyConfig(S) {
         else { const k = smooth(0.5, 1, t); a = lerp(W, Wt, k); b = lerp(D, topB, k); }
         return { a, b, r: b };
       };
-      cfg.closedTop = true; if (!closure) cfg.closure = 'frame'; cfg.sideSeams = [0.25, 0.75]; cfg.bulge = 0.05; break;
+      cfg.closedTop = true; cfg.sideSeams = [0.25, 0.75]; cfg.bulge = 0.05; break;
     }
     case 'envelope': {
       D = Math.max(d / 2, 9);
@@ -342,6 +360,7 @@ function familyConfig(S) {
   }
   if (cfg.closure === 'zip' || cfg.closure === 'frame') cfg.closedTop = fam !== 'gathered';
   if (cfg.closedTop) { cfg.dent = 0; cfg.sag = 0; cfg.topStitch = false; }
+  if (innerBag) { cfg.dent = 0; cfg.sag = 0; }
 
   if (S.bottom === 'round') {
     const base = cfg.prof, rb = Math.min(h * 0.25, W * 0.6);
@@ -351,7 +370,7 @@ function familyConfig(S) {
       return { ...p, a: p.a * f, b: p.b * Math.max(f, 0.55), r: p.r * f };
     };
     cfg.bottomEdge = false;
-  } else if (S.bottom === 'flat') {
+  } else if ((S.bottom === 'flat' || S.bottom === 'oval') && !(fam === 'round' && cfg.gatherBand)) {
     const tf = { halfmoon: 0.14, round: 0.14, gathered: 0.06, knot: 0.12 }[fam];
     if (tf) { const base = cfg.prof; cfg.prof = t => base(tf + t * (1 - tf)); cfg.bottomEdge = true; }
   }
@@ -435,14 +454,31 @@ export function buildBag(S, M) {
   const handles = Array.isArray(S.handles) ? S.handles : [];
   if (cfg.fam === 'azuma') buildAzuma(S_, handles);
   else if (cfg.fam === 'knot' || handles.some(x => x && x.type === 'knot')) buildKnot(S_, handles);
-  for (const hd of handles) {
-    if (!hd) continue;
-    if (cfg.fam === 'azuma') continue;
-    if (hd.type === 'knot') continue;
+  const hl = handles.filter(Boolean);
+  // 同じ手さげが2本 = 前に1本・うしろに1本。肩ひも2本+strapAt = 長い手さげ(前・うしろ)
+  const pairOf = type => hl.filter(x => x.type === type).length >= 2;
+  const longLoops = pairOf('shoulder') && S.strapAt != null;
+  const count = {};
+  const hasBpStrap = hl.some(x => x.type === 'backpack');
+  for (const hd0 of hl) {
+    let hd = hd0;
+    if (cfg.fam === 'azuma' || hd.type === 'knot') continue;
     if (cfg.fam === 'knot' && hd.type === 'loop') continue;
+    if (cfg.cordHandles && hd.type === 'cord') continue;              // 巾着のひも = 口のひもで描く
+    if (cfg.fam === 'backpack' && hd.type === 'loop') {               // リュックの手さげ = 上の小さな輪
+      if (!hasBpStrap) buildHandle(S_, { type: 'grab', width: hd.width });
+      continue;
+    }
+    if (longLoops && hd.type === 'shoulder') hd = { ...hd, type: 'loop' };
+    const k = hd.type; count[k] = (count[k] || 0) + 1;
+    if ((k === 'loop' || k === 'cord') && (pairOf(hd0.type) || (longLoops && hd0.type === 'shoulder'))) {
+      if (count[k] > 2) continue;
+      hd = { ...hd, sides: [count[k] === 1 ? 1 : -1] };
+    } else if (count[k] > 1 && (k === 'shoulder' || k === 'cross' || k === 'backpack')) continue;
     buildHandle(S_, hd);
   }
-  cfg.viewTheta = cfg.fam === 'backpack' ? -0.85 : -0.55;
+  if (cfg.innerBag) buildInnerBag(S_);
+  cfg.viewTheta = cfg.knapsack ? -2.3 : cfg.fam === 'backpack' ? -1.0 : -0.55;
   return { group, cfg };
 }
 
@@ -574,6 +610,21 @@ function buildClosure(S_, closure, flap, flapBottom) {
     const t = cfg.channelY / h, pts = [];
     for (let i = 0; i < 120; i++) { const s = 0.5 + i / 120; pts.push(body.point(t, s).addScaledVector(body.normal(t, s), 2.6)); }
     add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 220, 2.8, 6, true), M.cord);
+    if (cfg.cordHandles) {
+      const cord = (S_.S.handles || []).find(x => x && x.type === 'cord') || {};
+      const rise = clamp(num(cord.len, 600) * 0.28, 70, Math.max(120, h * 0.9));
+      const top = V(0, cfg.channelY + rise, 0);
+      for (const sx of [-1, 1]) {
+        const ss = sx > 0 ? 0.25 : 0.75, p0 = body.point(t, ss).addScaledVector(body.normal(t, ss), 3);
+        for (const dz of [-3, 3]) {
+          const pts = [p0.clone().add(V(0, 0, dz)), p0.clone().add(V(sx * 14, rise * 0.3, dz)), V(sx * Math.max(10, p0.x * 0.45), cfg.channelY + rise * 0.8, dz), top.clone().add(V(sx * 4, 0, dz * 0.5))];
+          add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), 50, clamp(num(cord.width, 4) * 0.7, 2.2, 4.5), 6, false), M.cord);
+        }
+        const bead = new THREE.Mesh(new THREE.SphereGeometry(7, 14, 10), M.bead); bead.position.copy(p0).add(V(sx * 6, -4, 0)); group.add(bead);
+      }
+      const knot = new THREE.Mesh(new THREE.SphereGeometry(6.5, 14, 10), M.cord); knot.position.copy(top); group.add(knot);
+      return;
+    }
     if (!cfg.knapsack) for (const sx of [-1, 1]) {  // ひもの先
       const s0 = sx * 0.03, p0 = body.point(t, s0).addScaledVector(body.normal(t, s0), 3);
       const end = p0.clone().add(V(sx * 22, -Math.min(110, h * 0.35), 18));
@@ -598,7 +649,7 @@ function buildClosure(S_, closure, flap, flapBottom) {
     }
     return;
   }
-  if (closure === 'tie') {
+  if (closure === 'tie' && cfg.fam !== 'azuma' && cfg.fam !== 'knot') {
     for (const sx of [-1, 1]) {
       const p0 = body.facePoint(sx * 8, 1 - 6 / h, 1, 1.5);
       const pts = [p0, p0.clone().add(V(sx * 10, -40, 6)), p0.clone().add(V(sx * 22, -95, 10))];
@@ -653,7 +704,7 @@ function buildHandle(S_, hd) {
 
   if (type === 'loop' && hm === 'wood') {    // 木の持ち手(半円の輪+布のタブ)
     const Rw = clamp(at ? at : topA * 0.55, 45, Math.max(50, topA - 8));
-    for (const side of [1, -1]) {
+    for (const side of hd.sides || [1, -1]) {
       const zTop = body.facePoint(0, 1, side, 2).z, yc = h + 22;
       const ring = new THREE.Mesh(new THREE.TorusGeometry(Rw, 7, 10, 40, PI), M.wood);
       ring.position.set(0, yc, zTop); group.add(ring);
@@ -669,7 +720,7 @@ function buildHandle(S_, hd) {
     const len = clamp(num(hd.len, 380), 120, 2500);
     const sep = clamp(at ? at : topA * 0.42, 20, Math.max(21, topA - width / 2 - 6));
     const R = Math.min(riseFor(sep, Math.max(len - 2 * att, 60)), Math.max(h * 1.2, 300));
-    for (const side of [1, -1]) {
+    for (const side of hd.sides || [1, -1]) {
       const tA = (h - att) / h, tB = (h - att * 0.45) / h;
       const lift = isCord ? 3.5 : thick / 2 + 0.6;
       const ptsL = [body.facePoint(-sep, tA, side, lift), body.facePoint(-sep, tB, side, lift)];
@@ -698,12 +749,20 @@ function buildHandle(S_, hd) {
     return;
   }
 
+  if (type === 'grab') {
+    const t0 = cfg.closedTop ? 0.995 : (cfg.channelY ? cfg.channelY - 12 : h - 12) / h;
+    const pf = cfg.closedTop ? V(0, h - 2, Math.min(18, topB * 0.6)) : body.facePoint(0, t0, -1, 2);
+    const pb = cfg.closedTop ? V(0, h - 2, -Math.min(18, topB * 0.6)) : body.facePoint(0, t0 - 0.08, -1, 2);
+    const mid = cfg.closedTop ? V(0, h + 28, 0) : body.facePoint(0, t0 - 0.03, -1, 24);
+    strapMesh(S_, [pf, mid, pb], { width: clamp(num(hd.width, 20), 10, 40), thick, hint: V(1, 0, 0), mode: 'width' }, mat);
+    return;
+  }
   if (type === 'shoulder' || type === 'cross') {
     const len = clamp(num(hd.len, type === 'cross' ? 1200 : 1000), 200, 3000);
     const tA = (h - att) / h;
     const pL = body.point(tA, 0.75).addScaledVector(body.normal(tA, 0.75), thick), pR = body.point(tA, 0.25).addScaledVector(body.normal(tA, 0.25), thick);
     const span = (pR.x - pL.x) / 2;
-    const R = Math.min(riseFor(span + 15, Math.max(len - 2 * att, 100)), Math.max(h * 1.35, w * 0.9, 320));
+    const R = Math.min(riseFor(span + 15, Math.max(len - 2 * att, 100)), Math.max(h * 1.2, w * 0.9, 200));
     const arc = [];
     for (let i = 0; i <= 20; i++) {
       const th = PI - PI * i / 20;
@@ -765,6 +824,30 @@ function buildHandle(S_, hd) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(7, 1.8, 8, 18), M.metal);
     ring.position.copy(A).add(V(2, 0, 0)); ring.rotation.y = PI / 2; group.add(ring);
     return;
+  }
+}
+
+// 巾着トートの中袋: トートの口から裏布の袋が出て、上でしぼる
+function buildInnerBag(S_) {
+  const { cfg, h, add, M, group } = S_, S = S_.S;
+  const pTop = cfg.prof(1), y0 = h - 70;
+  const rise = clamp(num(S.innerBagH, 150) * 0.4, 45, 110), H2 = h + rise - y0, ch = h + rise * 0.55;
+  const icfg = { h: H2, dent: 0, sag: 0, bulge: 0, prof: t => {
+    const y = y0 + t * H2; let k = 0.86, wave = 0;
+    if (y > h - 4) { const q = clamp((y - (h - 4)) / (ch - (h - 4)), 0, 1); k = lerp(0.86, 0.5, smooth(0, 1, q)); wave = 0.09 * q; }
+    if (y > ch) { const q = (y - ch) / (y0 + H2 - ch); k = lerp(0.5, 0.64, Math.sqrt(q)); wave = 0.12; }
+    return { a: pTop.a * k, b: pTop.b * k, r: Math.min(pTop.r, pTop.b) * k, wave, waveN: 11 };
+  } };
+  const ib = new Body(icfg), g = bodyGeometry(ib, 40, 96);
+  const o = add(g.outer, M.inner), l = add(g.lining, M.lining); o.position.y = l.position.y = y0;
+  const t = (ch - y0) / H2, pts = [];
+  for (let i = 0; i < 100; i++) { const s = 0.5 + i / 100; pts.push(ib.point(t, s).addScaledVector(ib.normal(t, s), 2.4).add(V(0, y0, 0))); }
+  add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 180, 2.6, 6, true), M.cord);
+  for (const sx of [-1, 1]) {
+    const ss = sx > 0 ? 0.25 : 0.75, p0 = ib.point(t, ss).addScaledVector(ib.normal(t, ss), 3).add(V(0, y0, 0));
+    const end = p0.clone().add(V(sx * 26, -Math.min(70, rise), 10));
+    add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([p0, p0.clone().lerp(end, 0.5).add(V(sx * 8, 4, 4)), end]), 30, 2.6, 6, false), M.cord);
+    const bead = new THREE.Mesh(new THREE.SphereGeometry(7, 14, 10), M.bead); bead.position.copy(end); group.add(bead);
   }
 }
 

@@ -78,6 +78,7 @@ function makeMaterials(fl, look, maxAniso) {
     lining: new THREE.MeshStandardMaterial({ color: liningC, roughness: 0.95, side: THREE.BackSide, vertexColors: true }),
     liningCap: new THREE.MeshStandardMaterial({ color: liningC, roughness: 0.95, side: THREE.BackSide, vertexColors: true }),
     flapLining: new THREE.MeshStandardMaterial({ color: liningC, roughness: 0.95, side: THREE.BackSide }),
+    inner: new THREE.MeshStandardMaterial({ color: liningC, roughness: 0.92, vertexColors: true }),
     rim: new THREE.MeshStandardMaterial({ color: fl.avg.clone().multiplyScalar(0.95), roughness: 0.9 }),
     rimDark: new THREE.MeshStandardMaterial({ color: fl.avg.clone().multiplyScalar(0.7), roughness: 0.9 }),
     strap: strapC ? new THREE.MeshStandardMaterial({ color: strapC, roughness: 0.8, side: THREE.DoubleSide }) : fab(THREE.DoubleSide, false),
@@ -279,7 +280,7 @@ export function createViewer(containerEl) {
     const pr = renderer.getPixelRatio(), oldAspect = camera.aspect;
     renderer.setPixelRatio(1); renderer.setSize(px, px, false);
     camera.aspect = 1; camera.updateProjectionMatrix();
-    const vf = camera.fov * PI / 180; const d = sphereR / Math.sin(vf / 2) * 0.98;
+    const vf = camera.fov * PI / 180; const d = (opt.radius > 0 ? opt.radius : sphereR) / Math.sin(vf / 2) * 0.98;
     placeCamera({ theta: opt.theta ?? viewTheta, phi: opt.phi ?? 0.28, zoom: 1 }, d);
     renderer.render(scene, camera);
     const url = canvas.toDataURL('image/png');

@@ -23,7 +23,7 @@ export function strapPiece({ id = 'handle', name = '持ち手', cut = 2, fabric 
     outline: rect(L, W), seam: 0, fold: null,
     grain: [[L * 0.2, W / 2], [L * 0.8, W / 2]],
     marks, measureOnly: true,
-    note: `${fold === 4 ? '四つ折り' : '三つ折り'}にして、はしを縫う。できあがり 幅${cmText(finW)}cm`,
+    note: `${fold === 4 ? '四つ折り' : '三つ折り'}にして、はしを縫う。できあがり幅${cmText(finW)}cm`,
   };
 }
 
@@ -33,7 +33,7 @@ export function foldPocket({ id = 'pocket', name = '内ポケット', cut = 1, f
     id, name, cut, fabric,
     outline: rect(pw, ph), seam, fold: 'top',
     grain: [[pw * 0.15, ph * 0.25], [pw * 0.15, ph * 0.8]],
-    marks: [{ type: 'text', at: [pw / 2, ph - 12], text: `返し口 ${cmText(Math.min(80, pw * 0.4))}cm を残して縫う` }],
+    marks: [{ type: 'text', at: [pw / 2, ph - 12], text: `返し口${cmText(Math.min(80, pw * 0.4))}cmを残して縫う` }],
   };
 }
 
