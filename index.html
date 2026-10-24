@@ -46,5 +46,31 @@
 <div id="print-area" aria-hidden="true"></div>
 <noscript><p style="font-size:24px;padding:24px">このアプリを使うには、JavaScript を有効にしてください。</p></noscript>
 <script type="module" src="js/main.js"></script>
+<!-- 開けなかったときの案内(古い書き方だけで書く。module が使えない古い端末でも動く) -->
+<script nomodule>window.__bagNoModule = true;</script>
+<script>
+(function () {
+  function showHelp() {
+    if (window.__bagStarted || document.getElementById('boot-help')) return;
+    var box = document.createElement('div');
+    box.id = 'boot-help';
+    box.setAttribute('role', 'alert');
+    box.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;z-index:999;overflow:auto;background:#faf7f0;color:#2b2622;' +
+      'font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-size:22px;line-height:1.7;padding:28px 18px 40px;';
+    box.innerHTML =
+      '<p style="font-size:28px;font-weight:700;margin:0 0 18px;color:#213b5c">うまく開けませんでした</p>' +
+      '<p style="margin:0 0 14px"><b>1.</b> もう一度、開いてみてください。</p>' +
+      '<button type="button" id="boot-reload" style="display:block;width:100%;min-height:72px;margin:0 0 22px;border:0;border-radius:999px;' +
+      'background:#213b5c;color:#fff;font-size:24px;font-weight:700">もう一度開く</button>' +
+      '<p style="margin:0 0 14px"><b>2.</b> LINE などの中で開いているときは、右上やメニューの<b>「Safariで開く」</b>(Android は「ブラウザで開く」)から開いてください。</p>' +
+      '<p style="margin:0"><b>3.</b> iPhone の<b>「設定」→「一般」→「ソフトウェアアップデート」</b>で新しくすると、開けることがあります。</p>';
+    document.body.appendChild(box);
+    var b = document.getElementById('boot-reload');
+    if (b) b.onclick = function () { location.reload(); };
+  }
+  if (window.__bagNoModule) { showHelp(); return; }
+  setTimeout(showHelp, 10000);
+})();
+</script>
 </body>
 </html>

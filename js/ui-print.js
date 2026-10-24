@@ -1,5 +1,5 @@
 // 印刷: 印刷の前の案内(実際のサイズ・5cmの四角・貼り方)→ window.print()
-import { esc, h, store, loadPrint, pickSize, paramsOf, SIZE_NAME, safe, toast } from './ui-common.js';
+import { phraseHTML, esc, h, store, loadPrint, pickSize, paramsOf, SIZE_NAME, safe, toast } from './ui-common.js';
 
 const ILL_PRINTER = `<svg class="ill" viewBox="0 0 320 180" role="img" aria-label="印刷の画面で「実際のサイズ」をえらぶ絵">
   <rect x="40" y="16" width="240" height="150" rx="12" fill="#fff" stroke="#c9bda8" stroke-width="2"/>
@@ -166,10 +166,11 @@ export async function renderPrint(root, { bag, go, isStale }) {
       </div>
       ${paper === 'A3' ? '<p class="muted small" style="margin:6px 0 0">A3は、家のプリンターがA3に対応しているときだけ。コンビニならA3でも印刷できます。</p>' : ''}
 
+      ${navigator.standalone ? '<div class="notice">ホーム画面から開いたときは、印刷できないことがあります。そのときは Safari でこのページを開いて印刷してください。</div>' : ''}
       <section class="section">
         <h2>どれで印刷しますか</h2>
         <div class="route-choice" role="group" aria-label="印刷のしかた">
-          ${ROUTES.map((r) => `<button type="button" class="route-btn" data-route="${r.id}" aria-pressed="${r.id === route}">${r.icon}<span>${r.name}</span></button>`).join('')}
+          ${ROUTES.map((r) => `<button type="button" class="route-btn" data-route="${r.id}" aria-pressed="${r.id === route}">${r.icon}<span>${phraseHTML(r.name)}</span></button>`).join('')}
         </div>
       </section>
 

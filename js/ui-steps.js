@@ -1,5 +1,5 @@
 // 作り方: 1手順ずつ大きく
-import { esc, store, paramsOf, pickSize, SIZE_NAME, safe } from './ui-common.js';
+import { phraseHTML, esc, store, paramsOf, pickSize, SIZE_NAME, safe } from './ui-common.js';
 
 const DONE_SVG = `<svg viewBox="0 0 96 96" aria-hidden="true"><path d="M34 34V26a14 14 0 0 1 28 0v8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M18 34h60l-5 46H23z" fill="currentColor" opacity=".12"/><path d="M18 34h60l-5 46H23z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M36 58l9 9 17-19" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
@@ -49,7 +49,7 @@ export async function renderSteps(root, { bag, go, isStale }) {
   root.innerHTML = `
     <div class="page-head" style="margin-bottom:14px">
       <p class="kicker">作り方</p>
-      <h1>${esc(bag.name)} <span class="size-tag">${SIZE_NAME[size]}</span></h1>
+      <h1>${phraseHTML(bag.name)} <span class="size-tag">${SIZE_NAME[size]}</span></h1>
     </div>
     <div id="step-body"></div>
     ${steps.length ? `<details class="all-steps"><summary>手順をぜんぶ見る</summary>

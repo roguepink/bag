@@ -123,10 +123,26 @@ export function lookOf(fabric, colorway, COLORWAYS = []) {
 }
 
 // ---------- ことば ----------
-/** 「・」で区切った名前を、区切りの所でだけ折り返す HTML に */
-export function nameHTML(name) {
-  return String(name == null ? '' : name).split('・').map((t) => `<span class="nw">${esc(t)}</span>`).join('・<wbr>');
+/** 短い名前・見出しを、ことばのかたまりでだけ折り返す HTML にする。
+ *  (WebKit は auto-phrase が無いので、ひらがな→漢字/カタカナ などの切れ目に <wbr> を入れる) */
+const kind = (c) => (/[ぁ-ゟ]/.test(c) ? 'h' : /[゠-ヿㇰ-ㇿー]/.test(c) ? 'k'
+  : /[一-鿿々]/.test(c) ? 'j' : 'o');
+export function phraseHTML(text) {
+  const t = String(text == null ? '' : text);
+  let out = '';
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (i > 0) {
+      const a = kind(t[i - 1]), b = kind(c), pc = t[i - 1];
+      const ok = (a === 'h' && (b === 'j' || b === 'k')) || (a === 'k' && b === 'j') || (a === 'j' && b === 'k')
+        || '・、)」'.includes(pc) || '(「'.includes(c);
+      if (ok) out += '<wbr>';
+    }
+    out += esc(c);
+  }
+  return `<span class="kp">${out}</span>`;
 }
+export const nameHTML = phraseHTML;
 export function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }

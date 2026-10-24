@@ -14,7 +14,7 @@ export async function renderHome(root, { catalog, go }) {
   root.innerHTML = `
     <section class="hero">
       <p class="kicker">手づくりの型紙</p>
-      <h1>どんなバッグを<br>作りますか</h1>
+      <h1><span class="nw">どんなバッグを</span><br><span class="nw">作りますか</span></h1>
       <p class="lead">形をえらぶと、原寸の型紙を家のプリンターで印刷できます。</p>
       <p class="steps-mini-h">すすめ方</p>
       <ol class="steps-mini" aria-label="すすめ方">
@@ -44,7 +44,7 @@ export async function renderHome(root, { catalog, go }) {
     const size = pickSize(last, store.get('size'));
     const btn = h(`<button class="resume" type="button">
       <span class="ph pic" style="width:76px;height:76px">${bagIcon(last)}</span>
-      <span><span class="t1">前に見ていたバッグ</span><span class="t2">${esc(last.name)}(${SIZE_NAME[size]})</span></span>
+      <span><span class="t1">前に見ていたバッグ</span><span class="t2">${nameHTML(last.name)}(${SIZE_NAME[size]})</span></span>
       <span class="go" aria-hidden="true">›</span></button>`);
     btn.addEventListener('click', () => go(`b/${encodeURIComponent(last.id)}`));
     root.querySelector('#resume-slot').appendChild(btn);
@@ -98,7 +98,7 @@ export async function renderList(root, { route, catalog, go, isStale }) {
       const card = h(`<button class="bag-card" type="button">
         <span class="pic">${shot ? `<img src="${shot}" alt="">` : bagIcon(b)}</span>
         <span>
-          <span class="bag-name">${esc(b.name)}</span>
+          <span class="bag-name">${nameHTML(b.name)}</span>
           ${b.desc ? `<span class="bag-desc">${esc(b.desc)}</span>` : ''}
           <span class="badges">${trendBadge(b.trend)}${levelBadge(b.level)}</span>
         </span></button>`);

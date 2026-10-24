@@ -1,6 +1,6 @@
 // 見る: 3D を大きく・大中小・柄と色
 import {
-  esc, h, store, loadViewer, loadFabric, paramsOf, pickSize, sizeKeysOf, SIZE_NAME, dimText, dimHTML,
+  phraseHTML, esc, h, store, loadViewer, loadFabric, paramsOf, pickSize, sizeKeysOf, SIZE_NAME, dimText, dimHTML,
   levelBadge, trendBadge, lookOf, bagIcon, FINGER_SVG, safe, defaultId, DEFAULT_FABRIC, DEFAULT_COLORWAY,
 } from './ui-common.js';
 
@@ -16,7 +16,7 @@ export async function renderView(root, { bag, go, isStale }) {
 
   root.innerHTML = `
     <div class="view-head">
-      <h1>${esc(bag.name)}</h1>
+      <h1>${phraseHTML(bag.name)}</h1>
       <span class="badges">${trendBadge(bag.trend)}${levelBadge(bag.level)}</span>
     </div>
     <div class="view-layout">
@@ -153,7 +153,7 @@ export async function renderView(root, { bag, go, isStale }) {
       for (const f of FABRICS) {
         const url = thumb(f.id, colorway);
         const b = h(`<button class="swatch" type="button" aria-pressed="${f.id === fabric}">
-          <span class="dot"></span><span class="nm">${esc(f.name)}</span></button>`);
+          <span class="dot"></span><span class="nm">${phraseHTML(f.name)}</span></button>`);
         b.querySelector('.dot').style.backgroundImage = url ? `url("${url}")` : cwBg(COLORWAYS.find((c) => c.id === colorway));
         b.addEventListener('click', () => { fabric = f.id; store.set('fabric', f.id); drawFabrics(); drawColorways(); show(); });
         fEl.appendChild(b);
@@ -166,7 +166,7 @@ export async function renderView(root, { bag, go, isStale }) {
       for (const c of COLORWAYS) {
         const url = thumb(fabric, c.id);
         const b = h(`<button class="swatch" type="button" aria-pressed="${c.id === colorway}">
-          <span class="dot"></span><span class="nm">${esc(c.name)}</span></button>`);
+          <span class="dot"></span><span class="nm">${phraseHTML(c.name)}</span></button>`);
         b.querySelector('.dot').style.backgroundImage = url ? `url("${url}")` : cwBg(c);
         b.addEventListener('click', () => { colorway = c.id; store.set('colorway', c.id); drawColorways(); drawFabrics(); show(); });
         cEl.appendChild(b);

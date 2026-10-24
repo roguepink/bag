@@ -67,6 +67,8 @@ async function render() {
   document.querySelectorAll('.dock, .zoomer, .mini-view, .sheet-wrap').forEach((el) => el.remove());
 
   const cat = await catalog();
+  window.__bagStarted = true; // 始まった(開けなかったときの案内は出さない)
+  { const help = document.getElementById('boot-help'); if (help) help.remove(); }
   if (my !== renderNo) return;
 
   const ctx = { route, catalog: cat, go, store, isStale: () => my !== renderNo };

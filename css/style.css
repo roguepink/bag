@@ -37,11 +37,15 @@ body {
   letter-spacing: .02em;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: rgba(33, 59, 92, .12);
-  /* ことばの途中で折り返さない(対応していない所は keep-all) */
-  word-break: keep-all;
-  word-break: auto-phrase;
+  /* 長い文は ふつうに折る。ことばのかたまりで折れる所(Chrome)では auto-phrase */
+  word-break: normal;
   overflow-wrap: anywhere;
+  line-break: strict;
 }
+@supports (word-break: auto-phrase) { body { word-break: auto-phrase; } }
+/* 名前・見出し: <wbr> の所(ことばの切れ目)でだけ折る */
+.kp { word-break: keep-all; overflow-wrap: anywhere; }
+.back, .btn, .easy-toggle, .paper-chip, .route-btn, .os-btn, .size-btn { word-break: keep-all; }
 img, svg { max-width: 100%; }
 button { font: inherit; color: inherit; }
 a { color: var(--accent); }
@@ -541,7 +545,7 @@ h3 { font-size: 1.15rem; }
 /* ---------- 作り方: ことばの説明 ---------- */
 .term {
   /* 文の中の言葉: 64px の約束からは外す。上下の余白で 44px 以上の押せる広さに */
-  display: inline; padding: 9px 3px; margin: 0 3px; border: 0; background: none; font: inherit; color: var(--accent);
+  display: inline; padding: 9px 1px; margin: 0 1px; border: 0; background: none; font: inherit; color: var(--accent);
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
   text-decoration: underline; text-decoration-style: dotted; text-decoration-thickness: 2px; text-underline-offset: 6px;
   cursor: pointer; border-radius: 4px;
@@ -559,3 +563,41 @@ h3 { font-size: 1.15rem; }
 @keyframes rise { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
 .gsheet-term { margin: 0; font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; color: var(--accent); }
 .gsheet-text { margin: 10px 0 20px; font-size: 1.2rem; line-height: 1.8; }
+
+/* ---------- とても小さい画面(幅 359px まで。初代 iPhone SE など) ---------- */
+@media (max-width: 359px) {
+  :root { --gutter: 12px; --top-h: 72px; }
+  .topbar { gap: 8px; min-height: 72px; }
+  .back { min-height: 64px; padding: 0 16px 0 8px; white-space: nowrap; font-size: 1rem; }
+  .brand span { display: none; }           /* 上のバーは「もどる」と袋の印だけ */
+  .brand { min-width: 64px; justify-content: center; }
+  .brand-mark { width: 34px; height: 34px; }
+  .is-home .brand span { display: inline; }  /* はじめの画面は名前も出す(もどるが無い) */
+  .hero { padding: 22px 16px 20px; }
+  .hero h1 { font-size: 1.45rem; }
+  h1 { font-size: 1.45rem; }
+  .easy-toggle { padding: 0 14px; gap: 10px; font-size: 1rem; white-space: nowrap; }
+  .easy-toggle .box { width: 28px; height: 28px; }
+  .bag-card { grid-template-columns: 72px 1fr; gap: 10px; padding: 10px 12px 10px 8px; }
+  .pic { width: 72px; height: 72px; }
+  .bag-name { font-size: 1rem; }
+  .badges { gap: 4px; }
+  .hint { font-size: .92rem; padding: 10px 14px; gap: 8px; }
+  .hint svg { width: 28px; height: 28px; }
+  .size-btn .big { font-size: 1.5rem; }
+  .swatch { width: 96px; }
+  .swatch .dot { width: 68px; height: 68px; }
+  .group-grid { gap: 10px; }
+  .group-card { min-height: 160px; padding: 14px 4px; }
+  .group-card .gicon, .group-card .gicon svg { width: 68px; height: 68px; }
+  .step-card { padding: 20px 16px 24px; }
+  .paper-btn { gap: 10px; }
+  .route-btn { padding: 10px 14px; gap: 12px; }
+  .mat-list li, .parts li { padding: 12px 14px; }
+}
+
+/* スマホ: 指の案内は左右いっぱいに(右で切れないように) */
+@media (max-width: 599px) {
+  .hint { left: 12px; right: 12px; transform: none; max-width: none; justify-content: center; white-space: normal; animation: fade .4s ease-out both; }
+  .hint.out { animation: hintOut .4s ease-in both; }
+}
