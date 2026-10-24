@@ -3,8 +3,39 @@ import { esc, store, paramsOf, pickSize, SIZE_NAME, safe } from './ui-common.js'
 
 const DONE_SVG = `<svg viewBox="0 0 96 96" aria-hidden="true"><path d="M34 34V26a14 14 0 0 1 28 0v8" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M18 34h60l-5 46H23z" fill="currentColor" opacity=".12"/><path d="M18 34h60l-5 46H23z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M36 58l9 9 17-19" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-export async function renderSteps(root, { bag, go }) {
+// ことばの説明(js/glossary.js があるときだけ)
+let glossP = null;
+const loadGlossary = () => (glossP ||= import('./glossary.js').then((m) => (Array.isArray(m.GLOSSARY) ? m.GLOSSARY : []), () => []));
+
+function withTerms(text, terms) {
+  const t = esc(text);
+  if (!terms.length) return t;
+  const re = new RegExp(terms.map((g) => esc(g.term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+  return t.replace(re, (m) => `<button type="button" class="term" data-term="${m}">${m}</button>`);
+}
+
+function openTerm(item) {
+  document.querySelectorAll('.sheet-wrap').forEach((el) => el.remove());
+  const el = document.createElement('div');
+  el.className = 'sheet-wrap';
+  el.innerHTML = `<div class="sheet-back" data-close></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(item.term)}の説明">
+      <p class="sheet-term">${esc(item.term)}</p>
+      <p class="sheet-text">${esc(item.text)}</p>
+      <button class="btn btn-primary btn-block" type="button" data-close>わかった</button>
+    </div>`;
+  document.body.appendChild(el);
+  const close = () => { el.remove(); window.removeEventListener('hashchange', close); };
+  el.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', close));
+  window.addEventListener('hashchange', close);
+  el.querySelector('button[data-close]').focus();
+}
+
+export async function renderSteps(root, { bag, go, isStale }) {
   const size = pickSize(bag, store.get('size'));
+  const gloss = (await loadGlossary()).filter((g) => g && g.term && g.text)
+    .sort((a, b) => b.term.length - a.term.length);
+  if (isStale && isStale()) return;
   const steps = typeof bag.steps === 'function' ? (safe(() => bag.steps(paramsOf(bag, size)), []) || []) : [];
   const saved = store.get('step') || {};
   let i = Math.min(Math.max(0, saved[bag.id] || 0), steps.length); // steps.length = できあがり
@@ -16,7 +47,7 @@ export async function renderSteps(root, { bag, go }) {
     </div>
     <div id="step-body"></div>
     ${steps.length ? `<details class="all-steps"><summary>手順をぜんぶ見る</summary>
-      <ol>${steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></details>` : ''}`;
+      <ol>${steps.map((s) => `<li>${withTerms(s, gloss)}</li>`).join('')}</ol></details>` : ''}`;
   const body = root.querySelector('#step-body');
 
   if (!steps.length) {
@@ -39,7 +70,7 @@ export async function renderSteps(root, { bag, go }) {
     } else {
       body.innerHTML = `${bar}<div class="step-card" aria-live="polite">
           <div class="step-no"><span class="n">${i + 1}</span><span class="of">/ ${steps.length} 手順</span></div>
-          <p class="step-text">${esc(steps[i])}</p></div>
+          <p class="step-text">${withTerms(steps[i], gloss)}</p></div>
         <div class="step-nav">
           <button class="btn" type="button" data-prev ${i === 0 ? 'disabled' : ''}><span class="arrow" aria-hidden="true">‹</span>まえ</button>
           <button class="btn btn-primary" type="button" data-next>${i === steps.length - 1 ? 'できた!' : 'つぎへ'}<span class="arrow" aria-hidden="true">›</span></button>
@@ -55,5 +86,12 @@ export async function renderSteps(root, { bag, go }) {
     const top = body.getBoundingClientRect().top + window.scrollY - 100;
     if (window.scrollY > top) window.scrollTo({ top, behavior: 'smooth' });
   };
+  root.addEventListener('click', (e) => {
+    const b = e.target.closest('.term');
+    if (!b) return;
+    const item = gloss.find((g) => g.term === b.dataset.term);
+    if (item) openTerm(item);
+  });
   draw();
+  return () => document.querySelectorAll('.sheet-wrap').forEach((el) => el.remove());
 }

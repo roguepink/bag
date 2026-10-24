@@ -1,5 +1,5 @@
 // 印刷: 印刷の前の案内(実際のサイズ・5cmの四角・貼り方)→ window.print()
-import { esc, h, store, loadPrint, pickSize, SIZE_NAME, safe, toast } from './ui-common.js';
+import { esc, h, store, loadPrint, pickSize, paramsOf, SIZE_NAME, safe, toast } from './ui-common.js';
 
 const ILL_PRINTER = `<svg class="ill" viewBox="0 0 320 180" role="img" aria-label="印刷の画面で「実際のサイズ」をえらぶ絵">
   <rect x="40" y="16" width="240" height="150" rx="12" fill="#fff" stroke="#c9bda8" stroke-width="2"/>
@@ -41,84 +41,199 @@ const ILL_GLUE = `<svg class="ill" viewBox="0 0 320 180" role="img" aria-label="
   <rect x="132" y="146" width="38" height="14" rx="2" fill="#f7e9b9" opacity=".9" transform="rotate(6 151 153)"/>
 </svg>`;
 
-const PC_SVG = `<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="7" width="30" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M2 32h36" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>`;
+const PC_SVG = `<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="9" width="36" height="24" rx="2.5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M2 39h44" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`;
+const PHONE_SVG = `<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="13" y="4" width="22" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><path d="M21 38h6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`;
+const STORE_SVG = `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 18l4-10h28l4 10z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M9 18v22h30V18" fill="none" stroke="currentColor" stroke-width="3"/><rect x="19" y="27" width="10" height="13" fill="none" stroke="currentColor" stroke-width="3"/></svg>`;
+const PRINT_ICON = `<svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
+
+const ILL_PHONE = `<svg class="ill" viewBox="0 0 320 180" role="img" aria-label="スマホの印刷の画面で、用紙をA4、倍率を100%にする絵">
+  <rect x="104" y="8" width="112" height="166" rx="16" fill="#fff" stroke="#c9bda8" stroke-width="2.5"/>
+  <text x="160" y="36" font-size="13" font-weight="700" fill="#213b5c" text-anchor="middle">印刷</text>
+  <rect x="116" y="48" width="88" height="30" rx="6" fill="#e8edf3" stroke="#213b5c" stroke-width="2.5"/>
+  <text x="124" y="68" font-size="12" fill="#2b2622">用紙</text><text x="196" y="68" font-size="14" font-weight="700" fill="#213b5c" text-anchor="end">A4</text>
+  <rect x="116" y="86" width="88" height="30" rx="6" fill="#e8edf3" stroke="#213b5c" stroke-width="2.5"/>
+  <text x="124" y="106" font-size="12" fill="#2b2622">倍率</text><text x="196" y="106" font-size="14" font-weight="700" fill="#213b5c" text-anchor="end">100%</text>
+  <rect x="124" y="136" width="72" height="24" rx="12" fill="#213b5c"/><text x="160" y="153" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">印刷</text>
+  <path d="M222 62h22M222 100h22" stroke="#e0a43a" stroke-width="4" stroke-linecap="round"/>
+</svg>`;
+
+const ROUTES = [
+  { id: 'pc', name: 'パソコンとプリンター', icon: PC_SVG },
+  { id: 'phone', name: 'スマホとプリンター', icon: PHONE_SVG },
+  { id: 'store', name: 'コンビニで印刷', icon: STORE_SVG },
+];
+const ua = navigator.userAgent || '';
+const isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(ua);
+const guessRoute = () => (isIOS || isAndroid ? 'phone' : 'pc');
+
+function routeGuide(route, phoneOS) {
+  if (route === 'pc') {
+    return `<div class="guide-card">
+      <h3>「実際のサイズ」をえらぶ</h3>
+      ${ILL_PRINTER}
+      <p>下のボタンを押すと、印刷の画面が出ます。<strong>「実際のサイズ」</strong>か<strong>「100%」</strong>をえらんでください。</p>
+      <p class="muted small">「用紙に合わせる」だと、型紙が小さくなってしまいます。</p>
+    </div>`;
+  }
+  if (route === 'phone') {
+    const android = `<p>下のボタンを押すと、印刷の画面が出ます。</p>
+      <ol class="how">
+        <li>上の<strong>「プリンタを選択」</strong>で、家のプリンターをえらびます。</li>
+        <li><strong>「用紙サイズ」</strong>を<strong>A4</strong>にします(⌄ を押すと出ます)。</li>
+        <li><strong>「倍率」</strong>や<strong>「拡大/縮小」</strong>があれば、<strong>100%(なし)</strong>にします。</li>
+      </ol>`;
+    const iphone = `<p>下のボタンを押すと、印刷の画面(プリントオプション)が出ます。</p>
+      <ol class="how">
+        <li><strong>「プリンタ」</strong>で、家のプリンターをえらびます。</li>
+        <li><strong>「用紙サイズ」</strong>を<strong>A4</strong>にします。</li>
+        <li>iPhone には倍率をえらぶ所が<strong>ないことが多い</strong>ので、そのまま1枚だけ印刷して、5cmを測ってください。</li>
+      </ol>`;
+    return `<div class="guide-card">
+      <h3>用紙をA4、倍率を100%に</h3>
+      ${ILL_PHONE}
+      <div class="os-tabs" role="group" aria-label="スマホの種類">
+        <button type="button" class="os-btn" data-os="android" aria-pressed="${phoneOS === 'android'}">Android</button>
+        <button type="button" class="os-btn" data-os="iphone" aria-pressed="${phoneOS === 'iphone'}">iPhone</button>
+      </div>
+      ${phoneOS === 'iphone' ? iphone : android}
+    </div>`;
+  }
+  return `<div class="guide-card">
+    <h3>PDFにしてコンビニで</h3>
+    <ol class="how">
+      <li>下のボタンを押し、印刷の画面で<strong>「PDFとして保存」</strong>をえらびます(iPhone は 共有 → 「ファイルに保存」)。</li>
+      <li>コンビニの印刷のアプリ(ネットプリントなど)に、そのPDFを入れます。</li>
+      <li>お店のコピー機で、<strong>「A4」</strong>と<strong>「等倍(100%)」</strong>をえらんで印刷します。</li>
+    </ol>
+    <p class="muted small">コンビニなら A3 でも印刷できます。</p>
+  </div>`;
+}
 
 export async function renderPrint(root, { bag, go, isStale }) {
   const size = pickSize(bag, store.get('size'));
-  const paper = store.get('paper') === 'A3' ? 'A3' : 'A4';
   const pr = await loadPrint();
   if (isStale()) return;
-  const res = pr && typeof pr.printPages === 'function' ? safe(() => pr.printPages(bag, size, { paper }), null) : null;
-  const pages = (res && Array.isArray(res.pages)) ? res.pages : [];
-  const pieces = typeof bag.pieces === 'function' ? safe(() => bag.pieces({ ...(bag.sizes && bag.sizes[size]), key: size, size, sizeKey: size }), []) || [] : [];
-  if (pieces.length && pieces.every((pc) => pc && pc.measureOnly)) {
-    root.innerHTML = `<div class="page-head"><p class="kicker">印刷</p><h1>印刷はいりません</h1>
-      <p class="lead">${esc(bag.name)}は、型紙を印刷しなくても作れます。布に直接 線を引いて切ります。</p></div>
-      <div class="btn-row"><button class="btn btn-primary btn-block" type="button" id="to-steps">作り方へすすむ<span class="arrow" aria-hidden="true">›</span></button></div>`;
-    root.querySelector('#to-steps').addEventListener('click', () => go(`b/${encodeURIComponent(bag.id)}/steps`));
-    return;
+  const pieces = typeof bag.pieces === 'function' ? (safe(() => bag.pieces(paramsOf(bag, size)), []) || []) : [];
+  const noPattern = pieces.length > 0 && pieces.every((pc) => pc && pc.measureOnly);
+  const counts = {};
+  const results = {};
+  for (const pp of ['A4', 'A3']) {
+    const r = pr && typeof pr.printPages === 'function' ? safe(() => pr.printPages(bag, size, { paper: pp }), null) : null;
+    results[pp] = r; counts[pp] = r && Array.isArray(r.pages) ? r.pages.length : 0;
   }
-  const cols = (res && res.cols) || pages.length || 1;
-  const rows = (res && res.rows) || 1;
+  const hasPattern = !noPattern && !(results.A4 && results.A4.hasPattern === false);
 
-  // 貼り方の地図(使わない場所は空ける)
-  const grid = (res && Array.isArray(res.map)) ? res.map
-    : Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => `${String.fromCharCode(65 + r)}-${c + 1}`));
-  const map = grid.map((row) => row.map((l) => (l ? `<span>${esc(l)}</span>` : '<span class="blank"></span>')).join('')).join('');
-
-  root.innerHTML = `
-    <div class="page-head">
-      <p class="kicker">印刷</p>
-      <h1>印刷のまえに</h1>
-      <p class="lead">${esc(bag.name)}(${SIZE_NAME[size]})の型紙を、${paper}の紙${pages.length ? ` <b>${pages.length}枚</b>` : ''}に印刷します。3つだけ、たしかめてください。</p>
-    </div>
-    <div class="guide">
-      <div class="guide-card">
-        <h3>「実際のサイズ」をえらぶ</h3>
-        ${ILL_PRINTER}
-        <p>印刷の画面で、<strong>「実際のサイズ」</strong>か<strong>「100%」</strong>をえらんでください。</p>
-        <p class="muted small">「用紙に合わせる」だと、型紙が小さくなってしまいます。</p>
-      </div>
-      <div class="guide-card">
-        <h3>5cmの四角を測る</h3>
-        ${ILL_MEASURE}
-        <p>1枚目に四角があります。定規で測って<strong>ちょうど5cm</strong>なら、正しい大きさです。</p>
-        <p class="muted small">ちがうときは、1の設定をもう一度見てください。</p>
-      </div>
-      <div class="guide-card">
-        <h3>番号の順に貼る</h3>
-        ${ILL_GLUE}
-        <p>紙のすみの番号の順に並べ、<strong>◆の印</strong>どうしを重ねてテープで貼ります。</p>
-        ${pages.length > 1 ? `<div class="page-map-wrap"><div class="page-map" style="grid-template-columns:repeat(${cols}, minmax(40px, 58px))" aria-label="紙の並べ方">${map}</div></div>` : ''}
-      </div>
-    </div>
-    <div class="tip">${PC_SVG}<p>パソコンなら、印刷の画面で<strong>「PDFとして保存」</strong>をえらぶと、コンビニのコピー機でも印刷できます。</p></div>
-    ${pages.length ? '' : `<div class="notice">型紙の印刷は、ただいま準備中です。</div>`}
-    <div class="btn-row">
-      <button class="btn btn-primary btn-block" type="button" id="print-all" ${pages.length ? '' : 'disabled'}>
-        <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-        ${pages.length ? `${pages.length}枚 印刷する` : '印刷する'}</button>
-      ${pages.length > 1 ? `<button class="btn btn-block" type="button" id="print-one">ためしに1枚だけ印刷</button>` : ''}
-      <button class="btn btn-block" type="button" id="to-steps" style="border-style:dashed">作り方へすすむ<span class="arrow" aria-hidden="true">›</span></button>
-    </div>`;
-
+  let route = store.get('printRoute') || guessRoute();
+  let phoneOS = isIOS ? 'iphone' : 'android';
+  let stage = 'start'; // start → asked(5cmでしたか)
   const area = document.getElementById('print-area');
-  const doPrint = (list) => {
+
+  const draw = () => {
+    const paper = store.get('paper') === 'A3' ? 'A3' : 'A4';
+    const res = results[paper];
+    const pages = (res && Array.isArray(res.pages)) ? res.pages : [];
+    const cols = (res && res.cols) || pages.length || 1;
+    const rows = (res && res.rows) || 1;
+    const grid = (res && Array.isArray(res.map)) ? res.map
+      : Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => `${String.fromCharCode(65 + r)}-${c + 1}`));
+    const map = grid.map((row) => row.map((l) => (l ? `<span>${esc(l)}</span>` : '<span class="blank">紙なし</span>')).join('')).join('');
+
+    if (!hasPattern) {
+      root.innerHTML = `<div class="page-head"><p class="kicker">印刷</p><h1>印刷はいりません</h1>
+        <p class="lead">${esc(bag.name)}は、型紙を印刷しなくても作れます。型紙の画面の寸法どおりに、布に直接、線を引いて切ります。</p></div>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-block" type="button" id="to-steps">作り方へすすむ<span class="arrow" aria-hidden="true">›</span></button>
+          ${pages.length ? `<button class="btn btn-block" type="button" id="print-memo">${PRINT_ICON}寸法の紙を1枚印刷する</button>` : ''}
+        </div>`;
+      root.querySelector('#to-steps').addEventListener('click', () => go(`b/${encodeURIComponent(bag.id)}/steps`));
+      const memo = root.querySelector('#print-memo');
+      if (memo) memo.addEventListener('click', () => doPrint(pages.slice(0, 1), paper));
+      return;
+    }
+
+    const rest = Math.max(0, pages.length - 1);
+    root.innerHTML = `
+      <div class="page-head">
+        <p class="kicker">印刷</p>
+        <h1>印刷のしかた</h1>
+        <p class="lead">${esc(bag.name)}(${SIZE_NAME[size]})の型紙を、<b>${paper}の紙${pages.length ? `${pages.length}枚` : ''}</b>に印刷します。</p>
+      </div>
+      <div class="paper-mini" role="group" aria-label="紙の大きさ">
+        ${['A4', 'A3'].map((pp) => `<button type="button" class="paper-chip" data-paper="${pp}" aria-pressed="${pp === paper}">${pp}${counts[pp] ? `で${counts[pp]}枚` : ''}</button>`).join('')}
+      </div>
+      ${paper === 'A3' ? '<p class="muted small" style="margin:6px 0 0">A3は、家のプリンターがA3に対応しているときだけ。コンビニならA3でも印刷できます。</p>' : ''}
+
+      <section class="section">
+        <h2>どれで印刷しますか</h2>
+        <div class="route-choice" role="group" aria-label="印刷のしかた">
+          ${ROUTES.map((r) => `<button type="button" class="route-btn" data-route="${r.id}" aria-pressed="${r.id === route}">${r.icon}<span>${r.name}</span></button>`).join('')}
+        </div>
+      </section>
+
+      <div class="guide" style="margin-top:22px">
+        ${routeGuide(route, phoneOS)}
+        <div class="guide-card">
+          <h3>5cmの四角を測る</h3>
+          ${ILL_MEASURE}
+          <p>1枚目に四角があります。定規で測って<strong>ちょうど5cm</strong>なら、正しい大きさです。</p>
+          <p class="muted small">ちがうときは、上の設定をもう一度見てください。</p>
+        </div>
+        <div class="guide-card">
+          <h3>番号の順に貼る</h3>
+          ${ILL_GLUE}
+          <p>紙のすみの番号の順に並べます。<strong>2枚目からは、✂の点線で左(または上)のふちを切ります。</strong>となりの紙のななめ線のところに重ね、<strong>◆</strong>どうしを合わせてテープで貼ります。</p>
+          ${pages.length > 1 ? `<div class="page-map-wrap"><div class="page-map" style="grid-template-columns:repeat(${cols}, minmax(44px, 62px))" aria-label="紙の並べ方">${map}</div></div>` : ''}
+        </div>
+      </div>
+      ${pages.length ? '' : `<div class="notice">型紙の印刷は、ただいま準備中です。</div>`}
+
+      <div class="print-actions" id="actions">
+        ${stage === 'start' || !rest ? `
+          <button class="btn btn-primary btn-block" type="button" id="print-one" ${pages.length ? '' : 'disabled'}>${PRINT_ICON}${rest ? 'まず1枚だけ印刷する' : '印刷する'}</button>
+          ${rest ? '<p class="muted small center">1枚目には、5cmの四角があります。</p>' : ''}
+        ` : `
+          <div class="ask">
+            <p class="ask-q">5cmでしたか?</p>
+            <button class="btn btn-primary btn-block" type="button" id="print-rest">${PRINT_ICON}はい、残りの${rest}枚を印刷する</button>
+            <p class="muted small center">2枚目から印刷します。</p>
+            <button class="btn btn-block" type="button" id="not-5">いいえ、ちがった</button>
+            <button class="btn btn-block" type="button" id="again" style="border-style:dashed">もう一度、1枚目を印刷する</button>
+          </div>
+        `}
+        <button class="btn btn-block" type="button" id="to-steps" style="border-style:dashed;margin-top:14px">作り方へすすむ<span class="arrow" aria-hidden="true">›</span></button>
+      </div>`;
+
+    root.querySelectorAll('[data-paper]').forEach((b) => b.addEventListener('click', () => { store.set('paper', b.dataset.paper); stage = 'start'; draw(); }));
+    root.querySelectorAll('[data-route]').forEach((b) => b.addEventListener('click', () => { route = b.dataset.route; store.set('printRoute', route); draw(); }));
+    root.querySelectorAll('[data-os]').forEach((b) => b.addEventListener('click', () => { phoneOS = b.dataset.os; draw(); }));
+    const on = (sel, fn) => { const el = root.querySelector(sel); if (el) el.addEventListener('click', fn); };
+    on('#print-one', () => {
+      doPrint(pages.slice(0, 1), paper);
+      if (rest) { stage = 'asked'; setTimeout(() => { draw(); focusAsk(); }, 400); }
+    });
+    on('#again', () => doPrint(pages.slice(0, 1), paper));
+    on('#print-rest', () => doPrint(pages.slice(1), paper));
+    on('#not-5', () => {
+      toast('印刷の画面の「倍率」を100%(実際のサイズ)にして、もう一度ためしてください', 5000);
+      const g = root.querySelector('.guide'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    on('#to-steps', () => go(`b/${encodeURIComponent(bag.id)}/steps`));
+  };
+  const focusAsk = () => { const a = root.querySelector('.ask'); if (a) a.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+
+  const doPrint = (list, paper) => {
     if (!list.length) return;
     document.getElementById('page-size').textContent = `@page { size: ${paper}; margin: 0; }`;
     area.className = paper === 'A3' ? 'a3' : '';
     area.innerHTML = list.map((svg) => `<div class="print-page">${svg}</div>`).join('');
     const done = () => { area.innerHTML = ''; window.removeEventListener('afterprint', done); };
     window.addEventListener('afterprint', done);
-    // 絵が入るのを待ってから
     requestAnimationFrame(() => requestAnimationFrame(() => {
       try { window.print(); } catch (e) { toast('この画面からは印刷できませんでした'); }
     }));
   };
-  root.querySelector('#print-all').addEventListener('click', () => doPrint(pages));
-  const one = root.querySelector('#print-one');
-  if (one) one.addEventListener('click', () => doPrint(pages.slice(0, 1)));
-  root.querySelector('#to-steps').addEventListener('click', () => go(`b/${encodeURIComponent(bag.id)}/steps`));
 
+  draw();
   return () => { area.innerHTML = ''; };
 }

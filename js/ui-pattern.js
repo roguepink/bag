@@ -1,9 +1,16 @@
-// 型紙: 全体図(拡大できる)・用意するもの・紙の枚数
+// 型紙: 全体図(拡大できる)・パーツの一覧・用意するもの・紙の枚数
 import {
-  esc, h, store, loadPrint, paramsOf, pickSize, SIZE_NAME, dimText, dimHTML, cm, safe, currentLook,
+  esc, h, store, loadPrint, paramsOf, pickSize, SIZE_NAME, dimHTML, cm, safe, currentLook,
 } from './ui-common.js';
 
 const FABRIC_NAME = { outer: '表布', lining: '裏布', interfacing: '接着芯', accent: '配色布' };
+const FABRIC_HELP = {
+  '配色布': 'ポケットなどに使う、ちがう色の布。表布と同じでもよい',
+  '接着芯': 'アイロンではって、布をしっかりさせる布',
+};
+const TOOLS = ['布切りばさみ', '紙用のはさみ', 'チャコペン(布に印をつけるペン)', '待ち針', '定規(50cmくらい)', 'アイロン', 'ミシン糸(布に合う色)', '型紙を貼るセロハンテープ'];
+const NUM = ['❶', '❷', '❸', '❹', '❺', '❻', '❼', '❽', '❾', '❿', '⓫', '⓬', '⓭', '⓮', '⓯', '⓰', '⓱', '⓲', '⓳', '⓴'];
+const PRINT_ICON = `<svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;
 
 export async function renderPattern(root, { bag, go, isStale }) {
   const size = pickSize(bag, store.get('size'));
@@ -11,6 +18,9 @@ export async function renderPattern(root, { bag, go, isStale }) {
   const pr = await loadPrint();
   const look = await currentLook();
   if (isStale()) return;
+  const pieces = (typeof bag.pieces === 'function' ? safe(() => bag.pieces(p), []) : []) || [];
+  const noPattern = pieces.length > 0 && pieces.every((pc) => pc && pc.measureOnly);
+  const hasFold = pieces.some((pc) => pc && pc.fold && !pc.measureOnly);
 
   root.innerHTML = `
     <div class="page-head">
@@ -22,17 +32,23 @@ export async function renderPattern(root, { bag, go, isStale }) {
       <div class="svgbox" id="ov-box"></div>
       <span class="zoom-tag"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M15 15l5.5 5.5M7 10h6M10 7v6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>大きく見る</span>
     </button>
+    ${noPattern ? '' : `<ul class="legend" aria-label="線の見かた">
+      <li><span class="ln cut" aria-hidden="true"></span>いちばん外の太い線…ここで切る</li>
+      <li><span class="ln sew" aria-hidden="true"></span>内側の細い線…縫う線(できあがり)</li>
+      ${hasFold ? '<li><span class="ln fold" aria-hidden="true"></span>赤い点線…わ(布を折って置く。切らない)</li>' : ''}
+    </ul>`}
+
+    <section class="section">
+      <h2>パーツ</h2>
+      <ol class="parts" id="parts"></ol>
+    </section>
 
     <section class="section">
       <h2>用意するもの</h2>
       <ul class="mat-list" id="mats"></ul>
       <ul class="mat-list extras" id="extras" style="margin-top:12px"></ul>
-    </section>
-
-    <section class="section" id="cut-sec" hidden>
-      <h2>布に直接 線を引いて切るもの</h2>
-      <p class="muted" style="margin:-4px 0 12px">長いものは印刷しません。定規で布に線を引いて切ります(縫い代こみ)。</p>
-      <ul class="mat-list" id="cuts"></ul>
+      <h3 class="tools-h">いつも使う道具</h3>
+      <ul class="tools" id="tools"></ul>
     </section>
 
     <section class="section" id="paper-sec">
@@ -42,18 +58,16 @@ export async function renderPattern(root, { bag, go, isStale }) {
     </section>
 
     <div class="btn-row two">
-      <button class="btn btn-primary btn-block" type="button" id="to-print">
-        <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7h-3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-        印刷する</button>
+      <button class="btn btn-primary btn-block" type="button" id="to-print">${PRINT_ICON}印刷する</button>
       <button class="btn btn-block" type="button" id="to-steps">作り方を見る<span class="arrow" aria-hidden="true">›</span></button>
     </div>`;
   root.querySelector('#to-print').addEventListener('click', () => go(`b/${encodeURIComponent(bag.id)}/print`));
   root.querySelector('#to-steps').addEventListener('click', () => go(`b/${encodeURIComponent(bag.id)}/steps`));
 
-  // ---- 全体図 ----
+  // ---- 全体図(図の中は番号と名前だけ。一覧は下の HTML) ----
   const ovBox = root.querySelector('#ov-box');
   const svg = pr && typeof pr.overviewSVG === 'function'
-    ? safe(() => pr.overviewSVG(bag, size, { fabric: look.fabric, colorway: look.colorway }), '') : '';
+    ? safe(() => pr.overviewSVG(bag, size, { fabric: look.fabric, colorway: look.colorway, list: false, legend: false }), '') : '';
   if (svg) {
     ovBox.innerHTML = svg;
     root.querySelector('#ov').addEventListener('click', () => openZoom(svg));
@@ -62,32 +76,44 @@ export async function renderPattern(root, { bag, go, isStale }) {
     root.querySelector('#ov .zoom-tag').remove();
   }
 
+  // ---- パーツの一覧 ----
+  const partsEl = root.querySelector('#parts');
+  partsEl.innerHTML = pieces.filter(Boolean).map((pc, k) => {
+    const cuts = (pr && typeof pr.cutsOf === 'function') ? safe(() => pr.cutsOf(pc), null) : null;
+    const list = cuts || [{ fabric: pc.fabric || 'outer', cut: pc.cut ?? 1 }];
+    const unit = pc.unit || (pc.measureOnly ? '本' : '枚');
+    const count = list.map((c) => `${FABRIC_NAME[c.fabric] || c.fabric}${c.cut}${unit}`).join('・');
+    let size2;
+    if (pc.measureOnly) {
+      const [w, hh] = cutSize(pc);
+      size2 = `型紙なし。布に直接、線を引いて <b class="nw">${cm(w)} × ${cm(hh)}cm</b> に切る`;
+    } else {
+      const fs = (pr && typeof pr.finishedSize === 'function') ? safe(() => pr.finishedSize(pc), null) : null;
+      const [w, hh] = fs || finished(pc);
+      size2 = `できあがり <span class="nw">${cm(w)} × ${cm(hh)}cm</span>${pc.fold ? '(わで切ると この大きさ)' : ''}`;
+    }
+    return `<li><span class="no" aria-hidden="true">${NUM[k] || k + 1}</span><div>
+      <p class="pn">${esc(pc.name)}<span class="pc">${esc(count)}</span></p>
+      <p class="ps">${size2}</p>${pc.measureOnly && pc.note ? `<p class="ps muted">${esc(pc.note)}</p>` : ''}</div></li>`;
+  }).join('') || `<li><span class="muted">パーツは、ただいま準備中です。</span></li>`;
+
   // ---- 用意するもの ----
   const mats = (pr && typeof pr.materials === 'function') ? safe(() => pr.materials(bag, size), []) : [];
   const matsEl = root.querySelector('#mats');
   if (mats && mats.length) {
-    matsEl.innerHTML = mats.map((m) => `<li><span class="mn">${esc(m.name)}</span><span class="ms">${esc(m.size || '')}</span>${m.note ? `<span class="cut-note">${esc(m.note)}</span>` : ''}</li>`).join('');
+    matsEl.innerHTML = mats.map((m) => {
+      const help = FABRIC_HELP[m.name];
+      return `<li><span class="mn">${esc(m.name)}</span><span class="ms">${esc(m.size || '')}</span>${help ? `<span class="cut-note">${esc(m.name)}…${esc(help)}</span>` : ''}${m.note ? `<span class="cut-note">${esc(m.note)}</span>` : ''}</li>`;
+    }).join('');
   } else {
     matsEl.innerHTML = `<li><span class="muted">布の量は、ただいま計算の準備中です。</span></li>`;
   }
-  const extras = typeof bag.extras === 'function' ? safe(() => bag.extras(p), []) : [];
+  const extras = (typeof bag.extras === 'function' ? safe(() => bag.extras(p), []) : []) || [];
   const exEl = root.querySelector('#extras');
-  const always = ['ミシン糸(布に合う色)', '型紙を貼るセロハンテープ'];
-  const list = [...(extras || [])];
-  for (const a of always) if (!list.some((t) => String(t).includes(a.slice(0, 3)))) list.push(a);
-  exEl.innerHTML = list.map((t) => `<li><span class="mn">${esc(t)}</span></li>`).join('');
-
-  // ---- 線を引いて切るもの(measureOnly) ----
-  const pieces = typeof bag.pieces === 'function' ? safe(() => bag.pieces(p), []) : [];
-  const cuts = (pieces || []).filter((pc) => pc && pc.measureOnly);
-  if (cuts.length) {
-    root.querySelector('#cut-sec').hidden = false;
-    root.querySelector('#cuts').innerHTML = cuts.map((pc) => {
-      const [w, hgt] = cutSize(pc);
-      const f = FABRIC_NAME[pc.fabric] || '';
-      return `<li><span class="mn">${esc(pc.name)}${pc.cut ? ` × ${pc.cut}${esc(pc.unit || '本')}` : ''}</span><span class="ms">${cm(w)}cm × ${cm(hgt)}cm</span>${f || pc.note ? `<span class="cut-note">${[f ? `${f}から切ります。` : '', pc.note ? esc(pc.note) : ''].join('')}</span>` : ''}</li>`;
-    }).join('');
-  }
+  if (extras.length) exEl.innerHTML = extras.map((t) => `<li><span class="mn">${esc(t)}</span></li>`).join('');
+  else exEl.remove();
+  const tools = TOOLS.filter((t) => !extras.some((e) => String(e).includes(t.slice(0, 3))));
+  root.querySelector('#tools').innerHTML = tools.map((t) => `<li>${esc(t)}</li>`).join('');
 
   // ---- 紙 ----
   const papersEl = root.querySelector('#papers');
@@ -110,22 +136,31 @@ export async function renderPattern(root, { bag, go, isStale }) {
     }
     const n = counts[paper];
     countEl.innerHTML = n
-      ? `${paper}の紙で <b>${n}</b> 枚 印刷して、貼り合わせます。${paper === 'A3' ? '<br><span class="muted small">A3 はプリンターが対応しているときだけ。</span>' : ''}`
+      ? `${paper}の紙で<b>${n}</b>枚印刷して、貼り合わせます。${paper === 'A3' ? '<br><span class="muted small">A3は、プリンターが対応しているときだけ。</span>' : ''}`
       : `<span class="muted">紙の枚数は、ただいま準備中です。</span>`;
   };
   drawPapers();
 
   // 型紙を印刷しなくてよい袋(パーツが全部「線を引いて切る」)
-  if (pieces && pieces.length && pieces.every((pc) => pc && pc.measureOnly)) {
+  if (noPattern) {
     root.querySelector('#paper-sec').innerHTML = `<h2>印刷はいりません</h2>
       <div class="tip" style="margin-top:0"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 30L30 6l4 4L10 34H6z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M26 10l4 4" stroke="currentColor" stroke-width="2.6"/></svg>
-      <p>この袋は、型紙を印刷しなくても作れます。上の寸法どおりに、定規で布に直接 線を引いて切ってください。</p></div>`;
-    const tp = root.querySelector('#to-print');
+      <p>この袋は、型紙を印刷しなくても作れます。上の寸法どおりに、定規で布に直接、線を引いて切ってください。</p></div>`;
+    root.querySelector('#to-print').remove();
     const ts = root.querySelector('#to-steps');
-    tp.remove();
     ts.classList.add('btn-primary');
     ts.parentElement.classList.remove('two');
   }
+}
+
+function finished(pc) {
+  const pts = pc.outline || [];
+  if (!pts.length) return [0, 0];
+  const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
+  let w = Math.max(...xs) - Math.min(...xs), hh = Math.max(...ys) - Math.min(...ys);
+  if (pc.fold === 'left' || pc.fold === 'right') w *= 2;
+  if (pc.fold === 'top' || pc.fold === 'bottom') hh *= 2;
+  return [w, hh];
 }
 
 function cutSize(pc) {
