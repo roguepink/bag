@@ -1,7 +1,7 @@
 // えらぶ: 仲間 → バッグ一覧
 import {
   esc, h, store, groupIcon, bagIcon, levelBadge, trendBadge, currentLook,
-  snapshotOf, cachedSnapshot, SIZE_NAME, pickSize,
+  snapshotOf, cachedSnapshot, SIZE_NAME, pickSize, pruneSnapshots,
 } from './ui-common.js';
 
 const preparing = `<div class="empty">
@@ -24,6 +24,7 @@ export async function renderHome(root, { catalog, go }) {
     <h2 class="sr">バッグの仲間</h2>
     <div class="group-grid" id="groups"></div>`;
 
+  pruneSnapshots();
   const grid = root.querySelector('#groups');
   if (!groups.length) { grid.outerHTML = preparing; return; }
   for (const g of groups) {
@@ -54,7 +55,7 @@ export async function renderHome(root, { catalog, go }) {
 
 export async function renderList(root, { route, catalog, go, isStale }) {
   const g = catalog.groups.find((x) => x.id === route.group) || { id: route.group, name: 'バッグ' };
-  const bags = catalog.bags.filter((b) => b.group === g.id)
+  const all = catalog.bags.filter((b) => b.group === g.id)
     .sort((a, b) => (b.trend ? 1 : 0) - (a.trend ? 1 : 0) || (a.level || 2) - (b.level || 2));
   root.innerHTML = `
     <div class="page-head">
@@ -62,30 +63,56 @@ export async function renderList(root, { route, catalog, go, isStale }) {
       <h1>${esc(g.name)}</h1>
       <p class="lead">作りたい形を、ひとつえらんでください。</p>
     </div>
+    <div id="easy-slot"></div>
     <div class="bag-list" id="bags"></div>`;
   const list = root.querySelector('#bags');
-  if (!bags.length) { list.outerHTML = preparing; return; }
+  if (!all.length) { list.outerHTML = preparing; return; }
 
   const look = await currentLook();
-  const pics = [];
-  for (const b of bags) {
-    const shot = cachedSnapshot(b, look);
-    const card = h(`<button class="bag-card" type="button">
-      <span class="pic">${shot ? `<img src="${shot}" alt="">` : bagIcon(b)}</span>
-      <span>
-        <span class="bag-name">${esc(b.name)}</span>
-        ${b.desc ? `<span class="bag-desc">${esc(b.desc)}</span>` : ''}
-        <span class="badges">${trendBadge(b.trend)}${levelBadge(b.level)}</span>
-      </span></button>`);
-    card.addEventListener('click', () => go(`b/${encodeURIComponent(b.id)}`));
-    list.appendChild(card);
-    if (!shot) pics.push([b, card.querySelector('.pic')]);
-  }
-  // 3D の絵を1枚ずつ作って入れかえる
-  for (const [b, pic] of pics) {
-    if (isStale()) return;
-    const url = await snapshotOf(b, look, 320);
-    if (isStale()) return;
-    if (url) pic.innerHTML = `<img class="ready" src="${url}" alt="">`;
-  }
+  if (isStale()) return;
+  const easyBtn = h(`<button class="easy-toggle" type="button" aria-pressed="false">
+    <span class="box" aria-hidden="true"></span><span>かんたんなものだけ</span></button>`);
+  root.querySelector('#easy-slot').appendChild(easyBtn);
+  let token = 0;
+
+  const draw = async () => {
+    const my = ++token;
+    const easyOnly = !!store.get('easyOnly');
+    easyBtn.setAttribute('aria-pressed', String(easyOnly));
+    let bags = all;
+    let note = '';
+    if (easyOnly) {
+      const easy = all.filter((b) => (b.level || 2) === 1);
+      if (easy.length) bags = easy;
+      else {
+        const min = Math.min(...all.map((b) => b.level || 2));
+        bags = all.filter((b) => (b.level || 2) === min);
+        note = `<p class="easy-note">この仲間には「かんたん」がありません。いちばん作りやすいものを出しています。</p>`;
+      }
+    }
+    list.innerHTML = note;
+    const pics = [];
+    for (const b of bags) {
+      const shot = cachedSnapshot(b, look);
+      const card = h(`<button class="bag-card" type="button">
+        <span class="pic">${shot ? `<img src="${shot}" alt="">` : bagIcon(b)}</span>
+        <span>
+          <span class="bag-name">${esc(b.name)}</span>
+          ${b.desc ? `<span class="bag-desc">${esc(b.desc)}</span>` : ''}
+          <span class="badges">${trendBadge(b.trend)}${levelBadge(b.level)}</span>
+        </span></button>`);
+      card.addEventListener('click', () => go(`b/${encodeURIComponent(b.id)}`));
+      list.appendChild(card);
+      if (!shot) pics.push([b, card.querySelector('.pic')]);
+    }
+    // 3D の絵を1枚ずつ作って入れかえる(一度作れば ためておく)
+    for (const [b, pic] of pics) {
+      if (isStale() || my !== token) return;
+      const url = await snapshotOf(b, look, 320);
+      if (isStale() || my !== token) return;
+      if (url) pic.innerHTML = `<img class="ready" src="${url}" alt="">`;
+    }
+  };
+  easyBtn.addEventListener('click', () => { store.set('easyOnly', !store.get('easyOnly')); draw(); });
+  draw();
 }

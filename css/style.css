@@ -209,6 +209,19 @@ h3 { font-size: 1.15rem; }
 .badge .dots { letter-spacing: 1px; color: var(--accent); font-size: .8em; }
 .badge .dots i { font-style: normal; color: var(--line-2); }
 
+/* かんたんなものだけ */
+.easy-toggle {
+  display: flex; align-items: center; gap: 14px; width: 100%; max-width: 520px;
+  min-height: 72px; margin: 0 0 18px; padding: 0 22px;
+  border-radius: 999px; border: 2px solid var(--accent); background: #fff; color: var(--accent);
+  font-size: 1.08rem; font-weight: 700; cursor: pointer; text-align: left;
+}
+.easy-toggle .box { width: 32px; height: 32px; border-radius: 8px; border: 2.5px solid var(--accent); flex: none; display: grid; place-items: center; background: #fff; }
+.easy-toggle[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.easy-toggle[aria-pressed="true"] .box { border-color: #fff; background: #fff; }
+.easy-toggle[aria-pressed="true"] .box::after { content: ""; width: 14px; height: 8px; border-left: 4px solid var(--accent); border-bottom: 4px solid var(--accent); transform: translateY(-2px) rotate(-45deg); }
+.easy-note { grid-column: 1 / -1; margin: 0; padding: 14px 18px; border-radius: 14px; background: #fff7e6; border: 1px solid #ecd39b; }
+
 /* ---------- 見る(3D) ---------- */
 .view-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 4px 0 14px; }
 .view-head .badges { margin-top: 0; }
