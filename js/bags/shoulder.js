@@ -428,8 +428,7 @@ export const shPochette = {
   steps(p) {
     return [
       PRINT,
-      cutStep('本体の表布と裏布を1枚ずつ', { fold: true }),
-      cutStep('ふたを表布で2枚'),
+      `${cutStep('本体の表布と裏布を1枚ずつ', { fold: true })}ふたは表布で2枚切ります。`,
       '接着芯は、本体1枚とふた1枚を切り、表布の本体と、表になるふたの裏にアイロンではります。',
       markStep(['合い印(▲)', 'マグネットの付け位置(●)']),
       lineCut('ひもの布2本'),

@@ -454,7 +454,8 @@ function pieceSVG(g, x, y, o) {
     if (hitName(bx, by)) {
       const cands = [[cx - blockW / 2 - r * 1.2, cy], [cx, cy - totalH / 2 - r * 1.2], [cx + blockW / 2 + r * 1.2, cy]];
       const okc = cands.find(([X, Y]) => pointInPoly([X - r, Y], outP) && pointInPoly([X, Y - r], outP) && pointInPoly([X + r, Y], outP) && pointInPoly([X, Y + r], outP));
-      if (okc) [bx, by] = okc;
+      [bx, by] = okc || cands[0]; // どこにも入らないときは 名前の左どなり(線に少しかかってもよい)
+      bx = Math.max(bx, r * 1.1); by = Math.max(by, r * 1.1); // 図の外へ出さない
     }
     out.push(`<circle cx="${f1(bx)}" cy="${f1(by)}" r="${f1(r)}" fill="#2b2b2b"/>`);
     out.push(text(bx, by, String(o.num), r * 1.15, { anchor: 'middle', baseline: 'central', fill: '#fff', weight: 'bold' }));
