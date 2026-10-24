@@ -358,7 +358,7 @@ export const outKnot = {
         id: 'body', name: '本体(持ち手と続き)', cut: 2, fabric: 'outer', more: [{ fabric: 'lining', cut: 2 }, { fabric: 'interfacing', cut: 2 }],
         outline: this.body(p), seam: 7, fold: null,
         grain: [[W * 0.5, LH + 30], [W * 0.5, LH + p.h * 0.45]],
-        labelAt: [W / 2, LH + p.h * 0.62],
+        labelAt: [W / 2, LH + (p.h + c) * 0.55],
         marks: [
           { type: 'notch', at: [hw / 2, 0] }, { type: 'notch', at: [W - hw / 2, LH - SH] },
           { type: 'text', at: [hw / 2, 8], text: '↑先は縫わない', size: 2.6 },
@@ -457,7 +457,7 @@ export const outGranny = {
         id: 'body', name: '本体', cut: 2, fabric: 'outer', more: [{ fabric: 'lining', cut: 2 }],
         outline: this.body(p), seam: 10, fold: null,
         grain: [[T * 0.2, H * 0.3], [T * 0.2, H * 0.7]],
-        labelAt: [T / 2, py + ph + (H - py - ph) * 0.45],
+        labelAt: [T / 2, H * 0.55],
         marks: [
           ...gatherMarks(0, T, 0, p.bandW, -1),
           { type: 'notch', at: [T / 2, 0] },
