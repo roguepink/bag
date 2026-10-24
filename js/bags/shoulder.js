@@ -460,7 +460,7 @@ export const shBoston = {
 
   shape(p) {
     return {
-      family: 'cylinder', axis: 'horizontal', w: p.w, h: p.h, d: p.d, corner: 30,
+      family: 'gusset', w: p.w, h: p.h, d: p.d, corner: 30,
       flap: null, closure: 'zip', zip: 'top', bottom: 'flat',
       handles: [
         { type: 'loop', len: p.handleLen, width: p.handleW },
