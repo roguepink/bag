@@ -35,7 +35,7 @@ export async function renderPattern(root, { bag, go, isStale }) {
       <ul class="mat-list" id="cuts"></ul>
     </section>
 
-    <section class="section">
+    <section class="section" id="paper-sec">
       <h2>印刷する紙</h2>
       <div class="paper-choice" id="papers" role="group" aria-label="紙の大きさ"></div>
       <p class="sheet-count" id="count" aria-live="polite"></p>
@@ -114,6 +114,18 @@ export async function renderPattern(root, { bag, go, isStale }) {
       : `<span class="muted">紙の枚数は、ただいま準備中です。</span>`;
   };
   drawPapers();
+
+  // 型紙を印刷しなくてよい袋(パーツが全部「線を引いて切る」)
+  if (pieces && pieces.length && pieces.every((pc) => pc && pc.measureOnly)) {
+    root.querySelector('#paper-sec').innerHTML = `<h2>印刷はいりません</h2>
+      <div class="tip" style="margin-top:0"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 30L30 6l4 4L10 34H6z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M26 10l4 4" stroke="currentColor" stroke-width="2.6"/></svg>
+      <p>この袋は、型紙を印刷しなくても作れます。上の寸法どおりに、定規で布に直接 線を引いて切ってください。</p></div>`;
+    const tp = root.querySelector('#to-print');
+    const ts = root.querySelector('#to-steps');
+    tp.remove();
+    ts.classList.add('btn-primary');
+    ts.parentElement.classList.remove('two');
+  }
 }
 
 function cutSize(pc) {

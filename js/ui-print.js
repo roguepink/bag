@@ -50,6 +50,14 @@ export async function renderPrint(root, { bag, go, isStale }) {
   if (isStale()) return;
   const res = pr && typeof pr.printPages === 'function' ? safe(() => pr.printPages(bag, size, { paper }), null) : null;
   const pages = (res && Array.isArray(res.pages)) ? res.pages : [];
+  const pieces = typeof bag.pieces === 'function' ? safe(() => bag.pieces({ ...(bag.sizes && bag.sizes[size]), key: size, size, sizeKey: size }), []) || [] : [];
+  if (pieces.length && pieces.every((pc) => pc && pc.measureOnly)) {
+    root.innerHTML = `<div class="page-head"><p class="kicker">印刷</p><h1>印刷はいりません</h1>
+      <p class="lead">${esc(bag.name)}は、型紙を印刷しなくても作れます。布に直接 線を引いて切ります。</p></div>
+      <div class="btn-row"><button class="btn btn-primary btn-block" type="button" id="to-steps">作り方へすすむ<span class="arrow" aria-hidden="true">›</span></button></div>`;
+    root.querySelector('#to-steps').addEventListener('click', () => go(`b/${encodeURIComponent(bag.id)}/steps`));
+    return;
+  }
   const cols = (res && res.cols) || pages.length || 1;
   const rows = (res && res.rows) || 1;
 

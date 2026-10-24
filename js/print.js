@@ -377,7 +377,7 @@ function pieceSVG(g, x, y, o) {
   F = Math.min(F, availH / (rel.reduce((s, v) => s + v, 0) * 1.3));
   F = Math.max(F, o.minName || 3);
   const totalH = rel.reduce((s, v) => s + v * F * 1.3, 0);
-  const blockW = Math.max(...lines.map((l, i) => textW(l) * F * rel[i]));
+  const blockW = Math.max(...lines.map((l, i) => textW(l) * F * rel[i])) * 1.08 + 2;
   // piece.labelAt で置き場所を決められる。パーツの外なら まん中へ。はみ出さないように寄せる。
   let [cx, cy] = centroid(outP);
   if (g.labelAt) {
@@ -387,6 +387,23 @@ function pieceSVG(g, x, y, o) {
   const clamp = (v, lo, hi) => (lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
   cx = clamp(cx, ob.x + blockW / 2 + 2 * u, ob.x + ob.w - blockW / 2 - 2 * u);
   cy = clamp(cy, ob.y + totalH / 2 + 2 * u, ob.y + ob.h - totalH / 2 - 2 * u);
+  // 印刷: 名前がページの境目(のりしろ)にかからない場所を探す(パーツの中で、近いところ)
+  if (o.fitsPage) {
+    const inside = (X, Y) => [[X - blockW / 2, Y - totalH / 2], [X + blockW / 2, Y - totalH / 2], [X + blockW / 2, Y + totalH / 2], [X - blockW / 2, Y + totalH / 2], [X, Y]]
+      .every((q) => pointInPoly(q, outP));
+    const ok = (X, Y) => inside(X, Y) && o.fitsPage({ x: X - blockW / 2, y: Y - totalH / 2, w: blockW, h: totalH });
+    if (!ok(cx, cy)) {
+      let bestP = null;
+      for (let X = ob.x + blockW / 2; X <= ob.x + ob.w - blockW / 2; X += 5) {
+        for (let Y = ob.y + totalH / 2; Y <= ob.y + ob.h - totalH / 2; Y += 5) {
+          const d = Math.hypot(X - cx, Y - cy);
+          if (bestP && d >= bestP.d) continue;
+          if (ok(X, Y)) bestP = { X, Y, d };
+        }
+      }
+      if (bestP) { cx = bestP.X; cy = bestP.Y; }
+    }
+  }
   let yy = cy - totalH / 2;
   for (let i = 0; i < lines.length; i++) {
     const fs = F * rel[i];
@@ -717,7 +734,14 @@ export function printPages(bag, sizeKey, opts = {}) {
   for (let r = 0; r < pu.rows; r++) for (let c = 0; c < pu.cols; c++) if (pu.used[r][c]) list.push([r, c]);
   const total = list.length;
   const has = (r, c) => r >= 0 && c >= 0 && r < pu.rows && c < pu.cols && pu.used[r][c];
-  const pieceLayer = lay.items.map((it) => ({ it, svg: pieceSVG(it.geom, it.x, it.y, { mode: 'print', u: 1, seamText, maxName: 12, minName: 3.5 }) }));
+  // 名前の四角が どれか1ページの のりしろ以外に収まるか
+  const fitsPage = (b) => {
+    const c = Math.floor(b.x / tile.sx), r = Math.floor(b.y / tile.sy);
+    const g = GLUE + 1; // 左・上の のりしろ(となりと重なる所)もさける
+    return b.x >= c * tile.sx + g && b.x + b.w <= (c + 1) * tile.sx - 1 && b.y >= r * tile.sy + g && b.y + b.h <= (r + 1) * tile.sy - 1
+      && !(r === 0 && c === 0 && b.x < header.x + header.w + 2 && b.y < header.y + header.h + 2);
+  };
+  const pieceLayer = lay.items.map((it) => ({ it, svg: pieceSVG(it.geom, it.x, it.y, { mode: 'print', u: 1, seamText, maxName: 12, minName: 3.5, fitsPage }) }));
   const id0 = `pp${++uid}`;
   const pages = list.map(([r, c], k) => {
     const id = `${id0}-${k}`;
