@@ -85,7 +85,7 @@ export async function renderPattern(root, { bag, go, isStale }) {
     root.querySelector('#cuts').innerHTML = cuts.map((pc) => {
       const [w, hgt] = cutSize(pc);
       const f = FABRIC_NAME[pc.fabric] || '';
-      return `<li><span class="mn">${esc(pc.name)}${pc.cut ? ` × ${pc.cut}本` : ''}</span><span class="ms">${cm(w)}cm × ${cm(hgt)}cm</span>${f || pc.note ? `<span class="cut-note">${[f ? `${f}から切ります。` : '', pc.note ? esc(pc.note) : ''].join('')}</span>` : ''}</li>`;
+      return `<li><span class="mn">${esc(pc.name)}${pc.cut ? ` × ${pc.cut}${esc(pc.unit || '本')}` : ''}</span><span class="ms">${cm(w)}cm × ${cm(hgt)}cm</span>${f || pc.note ? `<span class="cut-note">${[f ? `${f}から切ります。` : '', pc.note ? esc(pc.note) : ''].join('')}</span>` : ''}</li>`;
     }).join('');
   }
 

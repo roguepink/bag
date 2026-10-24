@@ -106,8 +106,8 @@ export async function currentLook() {
   return lookOf(fabric, colorway, C);
 }
 // はじめて開いたときの柄と色(落ち着いた こん の むじ)
-export const DEFAULT_FABRIC = ['plain', 'canvas', 'linen'];
-export const DEFAULT_COLORWAY = ['navy', 'ai', 'indigo'];
+export const DEFAULT_FABRIC = ['plain', 'hanpu'];
+export const DEFAULT_COLORWAY = ['ai', 'kinari'];
 export function defaultId(list, prefer) {
   for (const id of prefer) if (list.find((x) => x.id === id)) return id;
   return list[0] ? list[0].id : null;
@@ -191,17 +191,66 @@ export function bagIcon(bag) {
 export const FINGER_SVG = `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M20 26V11a3 3 0 0 1 6 0v12l9 2a4 4 0 0 1 3 4.5L36.5 40a4 4 0 0 1-4 3.5H24a4 4 0 0 1-3.2-1.6L13 32a3 3 0 0 1 4.6-3.8z" fill="#fff"/><path d="M6 10h8M6 10l3-3M6 10l3 3M42 10h-8M42 10l-3-3M42 10l-3 3" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>`;
 
 // ---------- 一覧のカード用の絵(3D の snapshot) ----------
+// 一度作った絵は メモリー と IndexedDB にためる。形・柄・色・版が変わると鍵が変わって作りなおす。
+const SNAP_VER = 2;   // 3D の見た目が大きく変わったら上げる
 const shots = new Map(); // key -> dataURL
 let shooter = null;      // { viewer, el }
 let queue = Promise.resolve();
-export function snapshotKey(bag, look) { return `${bag.id}|${look.fabric}|${look.colorway}`; }
+function hash(str) {
+  let x = 2166136261;
+  for (let i = 0; i < str.length; i++) { x ^= str.charCodeAt(i); x = Math.imul(x, 16777619); }
+  return (x >>> 0).toString(36);
+}
+export function snapshotKey(bag, look) {
+  const shape = safe(() => JSON.stringify(bag.shape(paramsOf(bag, pickSize(bag, 'M')))), '');
+  return `v${SNAP_VER}|${bag.id}|${look.fabric}|${look.colorway}|${hash(shape)}`;
+}
 export function cachedSnapshot(bag, look) { return shots.get(snapshotKey(bag, look)) || null; }
+
+// IndexedDB(使えないときは メモリーだけ)
+let dbP = null;
+function db() {
+  if (!dbP) {
+    dbP = new Promise((res) => {
+      try {
+        const rq = indexedDB.open('bag-katagami', 1);
+        rq.onupgradeneeded = () => rq.result.createObjectStore('shots');
+        rq.onsuccess = () => res(rq.result);
+        rq.onerror = () => res(null);
+      } catch (e) { res(null); }
+    });
+  }
+  return dbP;
+}
+async function idbGet(key) {
+  const d = await db(); if (!d) return null;
+  return new Promise((res) => {
+    try { const rq = d.transaction('shots').objectStore('shots').get(key); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); }
+    catch (e) { res(null); }
+  });
+}
+async function idbPut(key, val) {
+  const d = await db(); if (!d) return;
+  try { d.transaction('shots', 'readwrite').objectStore('shots').put(val, key); } catch (e) { /* なし */ }
+}
+/** 古い版の絵をそうじする(たまに) */
+export async function pruneSnapshots() {
+  const d = await db(); if (!d) return;
+  try {
+    const st = d.transaction('shots', 'readwrite').objectStore('shots');
+    const rq = st.openCursor();
+    rq.onsuccess = () => { const c = rq.result; if (!c) return; if (!String(c.key).startsWith(`v${SNAP_VER}|`)) c.delete(); c.continue(); };
+  } catch (e) { /* なし */ }
+}
+
 /** 3D係の snapshot で絵を作る(1枚ずつ順番に)。作れないときは null */
 export function snapshotOf(bag, look, px = 320) {
   const key = snapshotKey(bag, look);
   if (shots.has(key)) return Promise.resolve(shots.get(key));
   const job = queue.then(async () => {
     if (shots.has(key)) return shots.get(key);
+    const saved = await idbGet(key);
+    if (saved) { shots.set(key, saved); return saved; }
     const mod = await loadViewer();
     if (!mod || typeof mod.createViewer !== 'function') return null;
     if (!shooter) {
@@ -214,10 +263,9 @@ export function snapshotOf(bag, look, px = 320) {
     }
     try {
       const shape = bag.shape(paramsOf(bag, pickSize(bag, 'M')));
-      await shooter.viewer.show(shape, look);
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await shooter.viewer.show(shape, look);   // show は Promise
       const url = await shooter.viewer.snapshot(px);
-      if (typeof url === 'string' && url.startsWith('data:')) { shots.set(key, url); return url; }
+      if (typeof url === 'string' && url.startsWith('data:')) { shots.set(key, url); idbPut(key, url); return url; }
     } catch (e) { console.warn('[ui] snapshot できませんでした', bag.id, e); }
     return null;
   });
