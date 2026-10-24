@@ -252,8 +252,8 @@ h3 { font-size: 1.15rem; }
 @media (min-width: 900px) { .below-cue { display: none; } }
 .zoom3d { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 10px; z-index: 2; }
 .zoom3d button {
-  width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid var(--line-2);
-  background: rgba(255, 255, 255, .92); color: var(--accent); font-size: 1.6rem; font-weight: 700; line-height: 1;
+  width: 64px; height: 64px; border-radius: 50%; border: 1.5px solid var(--line-2);
+  background: rgba(255, 255, 255, .9); color: var(--accent); font-size: 1.7rem; font-weight: 400; line-height: 1;
   box-shadow: 0 2px 8px rgba(43, 38, 34, .1); cursor: pointer;
 }
 .zoom3d button:active { background: var(--accent-soft); }
@@ -435,7 +435,7 @@ h3 { font-size: 1.15rem; }
 .step-no { display: flex; align-items: baseline; gap: 10px; color: var(--accent); font-weight: 700; margin-bottom: 14px; }
 .step-no .n { font-family: var(--font-head); font-size: 3.2rem; line-height: 1; }
 .step-no .of { font-size: 1.05rem; color: var(--ink-2); }
-.step-text { font-size: 1.32rem; line-height: 1.85; margin: 0; position: relative; }
+.step-text { font-size: 1.32rem; line-height: 2.05; margin: 0; position: relative; }
 .step-nav { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; margin-top: 20px; }
 .step-nav .btn[disabled] { opacity: .35; cursor: default; }
 .done-card { text-align: center; padding: 34px 20px; }
@@ -447,7 +447,7 @@ h3 { font-size: 1.15rem; }
 }
 .all-steps summary::-webkit-details-marker { display: none; }
 .all-steps ol { margin: 18px 0 0; padding-left: 1.6em; }
-.all-steps li { margin: 0 0 12px; padding-left: 6px; }
+.all-steps li { margin: 0 0 12px; padding-left: 6px; line-height: 2; }
 .all-steps li::marker { color: var(--accent); font-weight: 700; }
 
 /* ---------- 共通の小物 ---------- */
@@ -538,7 +538,9 @@ h3 { font-size: 1.15rem; }
 
 /* ---------- 作り方: ことばの説明 ---------- */
 .term {
-  display: inline; padding: 0 2px; margin: 0; border: 0; background: none; font: inherit; color: var(--accent);
+  /* 文の中の言葉: 64px の約束からは外す。上下の余白で 44px 以上の押せる広さに */
+  display: inline; padding: 9px 3px; margin: 0 3px; border: 0; background: none; font: inherit; color: var(--accent);
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
   text-decoration: underline; text-decoration-style: dotted; text-decoration-thickness: 2px; text-underline-offset: 6px;
   cursor: pointer; border-radius: 4px;
 }

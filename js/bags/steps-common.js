@@ -5,19 +5,19 @@
 // - 「中表」は使わず「表どうしを内側にして重ね」と書く。「外表」は「裏どうしを内側にして(外表)」。
 // - 「押さえ縫い・ステッチ」は「ふちを縫いおさえる」にそろえる。
 // - むずかしい言葉は使ってよいが、js/glossary.js に必ずのせる。
-// - 1手順は短く(110字まで)。1つの袋は 6〜12 手順(tools/check_data.js の約束)。
+// - 1手順は短く(110字まで)、1つの動作。1つの袋は 6〜16 手順(tools/check_data.js の約束)。
 import { cmText } from './parts.js';
 
 // 1. 型紙(紙)を切る
 export const PRINT = '型紙を印刷して(何枚かあるときは貼り合わせて)、いちばん外の線(切る線)で紙を切ります。';
 
 // 2. 型紙を布に置いて、待ち針でとめて、切る
-// what = '表布と裏布を1枚ずつ' など(「を」まで入れる)。fold = 型紙に「わ」がある。more = あとに足す短い文
-export function cutStep(what, { fold = false, more = '' } = {}) {
+// what = '表布と裏布を1枚ずつ' など(「を」まで入れる)。fold = 型紙に「わ」がある
+export function cutStep(what, { fold = false } = {}) {
   const put = fold
     ? '布を半分に折り、型紙の「わ」を折り山に合わせて置きます。矢印(布目)を布の耳と平行にして待ち針でとめ、'
     : '型紙を布の裏に置き、矢印(布目)を布の耳と平行にして待ち針でとめ、';
-  return `${put}切る線で${what}切ります。${more}`;
+  return `${put}切る線で${what}切ります。`;
 }
 
 // 3. 印を布に写す。list = ['合い印(▲)', 'あき止まり(●)'] など
@@ -26,7 +26,7 @@ export function markStep(list = ['合い印(▲)']) {
 }
 
 // 型紙のない四角い布(持ち手・マチなど)
-export const lineCut = (what) => `${what}は、型紙を使わず、布に定規とチャコペンで線を引いて切ります。`;
+export const lineCut = (what) => `${what}は型紙を使わず、布に定規とチャコペンで線を引いて切ります。`;
 
 // 接着芯(縫い代に芯が入ると厚くなるので、できあがり線で切る)
 export const fuse = (where = '表布の裏') => `接着芯は、型紙の細い線(できあがり線)で切り、${where}にアイロンではります。`;
@@ -39,12 +39,16 @@ export const zigzag = (where) => `${where}の縫い代に、ジグザグミシ�
 
 // 持ち手を口に仮どめする。tuck = 片側の差しこみ(mm)。口の縫い代は 1cm なので、tuck − 1cm だけ切り口から出す。
 // 出したはしは、口を縫うと縫い代の中に入り、ふちの縫いおさえでもう一度とまる(丈夫になる)。
-export function tackStep({ name = '持ち手', where = '▲の印', tuck = 20, bag = '表袋' } = {}) {
+export function tackStep({ name = '持ち手', where = '▲の印', tuck = 20, note = true } = {}) {
   const out = tuck - 10;
   const amount = out >= 10 ? `${cmText(out)}cm` : `${out}mm`;
   const end = out > 0 ? `はしを口の切り口から${amount}出して` : 'はしを口の切り口にそろえて';
-  return `${bag}を表に返し、${name}を表がわに下向きにたらして${where}に合わせ、${end}仮どめします(ねじれないように)。`;
+  const why = out > 0 && note ? '出た所は縫い代の中に入ります(じゃまなら、あとで切りそろえます)。' : '';
+  return `${name}を表袋の表がわに下向きにたらして${where}に合わせ、${end}仮どめします(ねじれないように)。${why}`;
 }
+
+// 表袋を表に返す
+export const OUT = '表袋を表に返します。';
 
 // 表袋を裏袋の中に入れて、口を縫う
 export const MOUTH = '表袋を、裏返しのままの裏袋の中に入れ(表どうしが内側)、口をぐるりと縫います。';
@@ -52,11 +56,13 @@ export const MOUTH = '表袋を、裏返しのままの裏袋の中に入れ(表
 // マグネットボタン(さしこみ式)を、裏布に付ける
 export const magnet = (where = '裏布の口の印') => `${where}に、裏から接着芯を小さく(3cm角)はり、マグネットボタンを付けます。`;
 
-// 表に返して返し口をとじ、口のふちを縫いおさえて できあがり
-export const finish = (mm = 5) => `返し口から表に返して、返し口をコの字とじでとじます。口のふちから${mm}mmの所を縫いおさえたら、できあがりです。`;
+// 表に返して返し口をとじ、口のふちを縫いおさえて できあがり(2手順。...finish() で使う)
+export const TOPSTITCH = (mm = 5) => `口のふちから${mm}mmの所を、ぐるりと縫いおさえます。`;
+export const finish = (mm = 5) => [TURN, `口のふちから${mm}mmの所を、ぐるりと縫いおさえたら、できあがりです。`];
 
-// 返し口から表に返して、とじる(まだ続きがあるとき)
+// 返し口から表に返して、とじる
 export const TURN = '返し口から表に返して、返し口をコの字とじでとじます。';
 
 // ギャザーを寄せる
-export const gather = (toMm, where = '口') => `ミシンの目をいちばん大きくして、${where}の縫い代に2本縫います。糸を引いてギャザーを寄せ、前と後ろをそれぞれ${cmText(toMm)}cmにします。`;
+export const gatherSew = (where = '口') => `ミシンの目をいちばん大きくして、${where}の縫い代に2本縫います(返し縫いはしません)。`;
+export const gatherPull = (toMm) => `2本の糸をいっしょに引いてギャザーを寄せ、前と後ろをそれぞれ${cmText(toMm)}cmにします。`;

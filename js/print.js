@@ -325,7 +325,7 @@ function pieceSVG(g, x, y, o) {
       let yy = cy0 - bh / 2;
       for (const [t, s, wgt] of lines) { yy += s * 1.15; out.push(T(cx0, yy - s * 0.15, t, s, { anchor: 'middle', fill: '#a23b2a', weight: wgt, halo: true })); }
     } else {
-      const fs = Math.min(6 * u, L / 8) * 1.4;
+      const fs = Math.min(6 * u, L / 8) * 1.8;
       const off = fs * 0.9;
       out.push(text(mx - nn[0] * off, my - nn[1] * off, 'わ', fs, { anchor: 'middle', baseline: 'central', fill: '#a23b2a', weight: 'bold', halo: true }));
     }
@@ -337,10 +337,10 @@ function pieceSVG(g, x, y, o) {
     const ux = dx / L, uy = dy / L, hs = 3.5 * u;
     const head = (P, sx) => `M${f1(P[0] - sx * ux * hs - uy * hs * 0.5)},${f1(P[1] - sx * uy * hs + ux * hs * 0.5)}L${f1(P[0])},${f1(P[1])}L${f1(P[0] - sx * ux * hs + uy * hs * 0.5)},${f1(P[1] - sx * uy * hs - ux * hs * 0.5)}`;
     out.push(`<path d="M${f1(p[0])},${f1(p[1])}L${f1(q[0])},${f1(q[1])}${head(q, 1)}${head(p, -1)}" fill="none" stroke="#2c5d8a" stroke-width="${f1(0.6 * u)}" stroke-linecap="round" stroke-linejoin="round"/>`);
-    if (print) out.push(T((p[0] + q[0]) / 2 - uy * 3.6, (p[1] + q[1]) / 2 + ux * 3.6, '布目(布のたて糸の向き)', 3.8, { anchor: 'middle', baseline: 'central', rot: upright(dx, dy), fill: '#1f4a70', halo: true }));
+    if (print) out.push(T((p[0] + q[0]) / 2 - uy * 3.6, (p[1] + q[1]) / 2 + ux * 3.6, '布目(布のたて糸の向き)', 4, { anchor: 'middle', baseline: 'central', rot: upright(dx, dy), fill: '#1f4a70', halo: true }));
   }
   // 印
-  const LS = 3.8; // 印の説明の字(mm)
+  const LS = 4; // 印の説明の字(mm)。紙に印刷する字は 4mm 以上
   for (const m of g.marks) {
     if (m.type === 'notch' && m.at) {
       const P = [m.at[0] + x, m.at[1] + y];
@@ -404,8 +404,16 @@ function pieceSVG(g, x, y, o) {
   for (let i = 0; i < lines.length; i++) F = Math.min(F, availW / (textW(lines[i]) * rel[i]));
   F = Math.min(F, availH / (rel.reduce((s, v) => s + v, 0) * 1.3));
   F = Math.max(F, o.minName || 3);
-  const totalH = rel.reduce((s, v) => s + v * F * 1.3, 0);
-  const blockW = Math.max(...lines.map((l, i) => textW(l) * F * rel[i])) * 1.08 + 2;
+  // 字の大きさ。印刷では どの行も 4mm 以上(入らない行は 下から はぶく)
+  let sz = lines.map((_, i) => F * rel[i]);
+  if (print) {
+    const MIN = 4;
+    sz = sz.map((v) => Math.max(MIN, v));
+    const fitsIn = () => Math.max(...lines.map((l, i) => textW(l) * sz[i])) <= ob.w * 0.92 && sz.reduce((a, v) => a + v * 1.3, 0) <= ob.h * 0.85;
+    while (lines.length > 1 && !fitsIn()) { lines.pop(); sz.pop(); }
+  }
+  const totalH = sz.reduce((a, v) => a + v * 1.3, 0);
+  const blockW = Math.max(...lines.map((l, i) => textW(l) * sz[i])) * 1.08 + 2;
   // piece.labelAt で置き場所を決められる。パーツの外なら まん中へ。はみ出さないように寄せる。
   let [cx, cy] = centroid(outP);
   if (g.labelAt) {
@@ -434,13 +442,20 @@ function pieceSVG(g, x, y, o) {
   }
   let yy = cy - totalH / 2;
   for (let i = 0; i < lines.length; i++) {
-    const fs = F * rel[i];
+    const fs = sz[i];
     yy += fs * 1.3;
     out.push(text(cx, yy - fs * 0.3, lines[i], fs, { anchor: 'middle', weight: i <= 1 ? 'bold' : null, fill: i === 1 ? '#7a3b12' : '#222', halo: true }));
   }
   if (o.num) {
-    const r = Math.max(o.simple ? F * 0.9 : F * 0.75, 4 * u);
-    const bx = ob.x + r * 1.3, by = ob.y + r * 1.3;
+    const r = Math.max(o.simple ? F * 0.8 : F * 0.75, 4 * u);
+    let bx = ob.x + r * 1.3, by = ob.y + r * 1.3;
+    // 名前と重なるときは、名前の左どなり(だめなら上)へ
+    const hitName = (X, Y) => X + r > cx - blockW / 2 && X - r < cx + blockW / 2 && Y + r > cy - totalH / 2 && Y - r < cy + totalH / 2;
+    if (hitName(bx, by)) {
+      const cands = [[cx - blockW / 2 - r * 1.2, cy], [cx, cy - totalH / 2 - r * 1.2], [cx + blockW / 2 + r * 1.2, cy]];
+      const okc = cands.find(([X, Y]) => pointInPoly([X - r, Y], outP) && pointInPoly([X, Y - r], outP) && pointInPoly([X + r, Y], outP) && pointInPoly([X, Y + r], outP));
+      if (okc) [bx, by] = okc;
+    }
     out.push(`<circle cx="${f1(bx)}" cy="${f1(by)}" r="${f1(r)}" fill="#2b2b2b"/>`);
     out.push(text(bx, by, String(o.num), r * 1.15, { anchor: 'middle', baseline: 'central', fill: '#fff', weight: 'bold' }));
   }
@@ -523,7 +538,7 @@ export function overviewSVG(bag, sizeKey, opts = {}) {
   for (const it of lay.items) {
     body.push(pieceSVG(it.geom, pad + it.x, top + it.y, {
       mode: 'overview', u, seamText, num: numOf.get(it.piece), simple: !showList,
-      maxName: fsL * (showList ? 1.6 : 1.2), minName: fsL * (showList ? 0.35 : 0.6), fill,
+      maxName: fsL * (showList ? 1.6 : 1.55), minName: fsL * (showList ? 0.35 : 0.8), fill,
     }));
   }
   y = top + lay.sheetH + (lay.items.length ? pad * 1.2 : 0);
@@ -534,8 +549,8 @@ export function overviewSVG(bag, sizeKey, opts = {}) {
       body.push(text(pad, y + fsL * 0.5, '布に直接、線を引いて切るもの(型紙なし)', fsL * 0.85, { baseline: 'central', weight: 'bold' }));
       y += fsL * 1.4;
     }
-    const lf = showList ? 0.62 : 0.75; // 寸法の字
-    const availW = W - pad * 2 - fsL * 7;
+    const lf = showList ? 0.62 : 1.0; // 寸法の字
+    const availW = W - pad * 2 - fsL * (showList ? 7 : 9);
     const bbs = mo.map((pc) => bbox(pc.outline));
     let sc = Infinity;
     for (const b of bbs) sc = Math.min(sc, (availW * 0.9) / Math.max(b.w, 1), (fsL * 5) / Math.max(b.h, 1));
@@ -544,10 +559,11 @@ export function overviewSVG(bag, sizeKey, opts = {}) {
       const b = bbs[i];
       const sx = sc, sy = Math.max(sc, (fsL * 0.9) / Math.max(b.h, 1)); // 細い帯も見えるように
       const bw = b.w * sx, bh = b.h * sy;
-      const blockW = bw + fsL * 6.5, blockH = bh + fsL * (showList ? 1.5 : 2.9);
+      const dimW = textW(`たて${cm(b.h)}cm`) * fsL * lf;
+      const blockW = bw + fsL * 2.2 + dimW, blockH = bh + fsL * (showList ? 1.5 : 3.4);
       if (x > pad && x + blockW > W - pad) { x = pad; y += rowH + fsL * 0.6; rowH = 0; }
-      const y0 = y + fsL * (showList ? 1.1 : 2.45);
-      if (!showList) body.push(text(x + fsL * 1.6, y + fsL * 0.55, pc.name, fsL * 0.8, { baseline: 'central', weight: 'bold' }));
+      const y0 = y + fsL * (showList ? 1.1 : 2.9);
+      if (!showList) body.push(text(x + fsL * 1.6, y + fsL * 0.6, pc.name, fsL * 1.05, { baseline: 'central', weight: 'bold' }));
       body.push(measureSVG(pc, b, x + fsL * 1.6, y0, sx, sy, fsL, numOf.get(pc), lf));
       x += blockW + fsL; rowH = Math.max(rowH, blockH);
     });
@@ -587,13 +603,14 @@ export function overviewSVG(bag, sizeKey, opts = {}) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${f1(W)} ${f1(H)}" width="100%" role="img" aria-label="${esc(bag.name)} ${esc(sizeLabel(sizeKey))}の型紙の全体図" font-family="${esc(FONT)}"><rect width="${f1(W)}" height="${f1(H)}" fill="#fff"/>${body.join('')}</svg>`;
 }
 
+// 折り返し。数字や英字のつながり(「49.4cm」「A-1」など)の途中では切らない
 function wrap(s, maxW) {
   const out = [];
   let cur = '', w = 0;
-  for (const ch of String(s)) {
-    const cw = textW(ch);
+  for (const tok of String(s).match(/[0-9A-Za-z.\-×]+|[\s\S]/g) || []) {
+    const cw = textW(tok);
     if (w + cw > maxW && cur) { out.push(cur); cur = ''; w = 0; }
-    cur += ch; w += cw;
+    cur += tok; w += cw;
   }
   if (cur) out.push(cur);
   return out;
@@ -693,18 +710,19 @@ function pagesUsed(items, header, tile, sheetW, sheetH) {
   return { cols, rows, used, count: used.flat().filter(Boolean).length };
 }
 
-// 1枚目(A-1)の、型紙にも説明にも のりしろにもかからない所に 5cm の四角を置く。置けなければ null
-function findSquareSpot(items, header, tile) {
+// 1枚目(A-1)の、型紙にも ほかの四角(avoid)にも のりしろにもかからない所に w×h の四角を置く。置けなければ null
+function findSpot(items, avoid, w, h, tile) {
   const polys = items.map((it) => it.geom.cut.map((p) => [p[0] + it.x, p[1] + it.y]));
   const free = (x, y) => {
-    const R = { x: x - 3, y: y - 3, w: SQ + 6, h: SQ + 6 };
-    if (R.x < header.x + header.w && R.x + R.w > header.x && R.y < header.y + header.h && R.y + R.h > header.y) return false;
-    for (const P of polys) if (polyHitsRect(P, R) || pointInPoly([x + SQ / 2, y + SQ / 2], P)) return false;
+    const R = { x: x - 3, y: y - 3, w: w + 6, h: h + 6 };
+    for (const q of avoid) if (q && R.x < q.x + q.w && R.x + R.w > q.x && R.y < q.y + q.h && R.y + R.h > q.y) return false;
+    for (const P of polys) if (polyHitsRect(P, R) || pointInPoly([x + w / 2, y + h / 2], P)) return false;
     return true;
   };
-  for (let y = 0; y + SQ <= tile.sy - 2; y += 4) for (let x = 0; x + SQ <= tile.sx - 2; x += 4) if (free(x, y)) return { x, y };
+  for (let y = 0; y + h <= tile.sy - 2; y += 4) for (let x = 0; x + w <= tile.sx - 2; x += 4) if (free(x, y)) return { x, y };
   return null;
 }
+const findSquareSpot = (items, header, tile) => findSpot(items, [header], SQ, SQ, tile);
 
 // 紙はいつも縦向き(ページ番号・説明・5cm の四角は ふつうに読める向き)。
 // 型紙の並べ方は いくつか試す: (1) そのまま (2) 横長の紙のつもりで並べて、型紙ごと 90° 回す。ページが少ない方。
@@ -781,6 +799,45 @@ export function printPlan(bag, sizeKey, opts = {}) {
       consider({ sheetW: H2, sheetH: width, items: items2 }, 'turned');
     }
   }
+  // (3) 説明の場所を とっておかずに並べ、あとから 1枚目のあいた所に 説明と 5cm の四角を置く(ページが減るときだけ使う)
+  if (preps.length) {
+    const hforms = [W0, 150, 120, 95].map((w) => headerLayout(info, w));
+    const tryFree = (lay, how) => {
+      for (const hl of hforms) {
+        const spot = findSpot(lay.items, [], hl.w, hl.h, tile);
+        if (!spot) continue;
+        const header = { x: spot.x, y: spot.y, w: hl.w, h: hl.h };
+        const square = info.square ? findSquareSpot(lay.items, header, tile) : null;
+        if (info.square && !square) continue;
+        const pu = pagesUsed(lay.items, header, tile, lay.sheetW, lay.sheetH);
+        const score = pu.count * 1e4 + pu.rows * pu.cols * 10 + (how === 'straight' ? 0 : 1) + 3;
+        if (!best || score < best.score) best = { score, how, lay, pu, sheetH: lay.sheetH, header, hl, square };
+        return;
+      }
+    };
+    const sc = (tl, width) => (items, res) => pagesUsed(items, null, tl, width, res.H).count * 1e6 + res.H;
+    const c0 = Math.max(1, Math.ceil((minD - GLUE) / tile.sx - 1e-9));
+    for (let cols = c0; cols <= c0 + 4; cols++) {
+      const width = cols * tile.sx + GLUE;
+      const lay = layoutPieces(bag, sizeKey, { width, tile, score: sc(tile, width) });
+      tryFree({ ...lay, sheetW: width }, 'straight');
+    }
+    const cL0 = Math.max(1, Math.ceil((minD - GLUE) / tileL.sx - 1e-9));
+    for (let cols = cL0; cols <= cL0 + 3; cols++) {
+      const width = cols * tileL.sx + GLUE;
+      const lay = layoutPieces(bag, sizeKey, { width, tile: tileL, score: sc(tileL, width) });
+      const H = Math.max(1, Math.ceil((lay.sheetH - GLUE) / tileL.sy - 1e-9)) * tileL.sy + GLUE;
+      for (const turn of [90, 270]) {
+        const items = lay.items.map((it) => {
+          const g = place(it.prep, it.rotate + turn);
+          const x = turn === 90 ? H - (it.y + it.h) : it.y;
+          const y = turn === 90 ? it.x : width - (it.x + it.w);
+          return { piece: it.piece, x, y, rotate: (it.rotate + turn) % 360, w: g.w, h: g.h, geom: g, prep: it.prep };
+        });
+        tryFree({ sheetW: H, sheetH: width, items }, 'turned');
+      }
+    }
+  }
   return { ...best, tile, header: best.header, headerInfo: best.hl, paper, pieces, hasPattern: preps.length > 0 };
 }
 
@@ -833,7 +890,7 @@ export function printPages(bag, sizeKey, opts = {}) {
       o.push(svg);
     }
     if (r === 0 && c === 0) {
-      o.push(headerSVG(bag, sizeKey, plan.headerInfo, header.w, header.h));
+      o.push(`<g transform="translate(${f1(header.x)} ${f1(header.y)})">${headerSVG(bag, sizeKey, plan.headerInfo, header.w, header.h)}</g>`);
       if (plan.square) o.push(squareSVG(plan.square.x, plan.square.y));
     }
     // 合わせ印 ◆(重なるところのまん中)
