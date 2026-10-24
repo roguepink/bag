@@ -20,7 +20,7 @@ export const FABRIC_GROUPS = [
   { id: 'shima', name: 'しま' },
   { id: 'check', name: 'チェック' },
   { id: 'dot',   name: '水玉' },
-  { id: 'hana',  name: '花・葉' },
+  { id: 'hana',  name: '花と葉' },
   { id: 'wa',    name: '和柄' },
 ];
 
@@ -30,17 +30,17 @@ export const FABRICS = [
   { id: 'hanpu',       name: '帆布',           group: 'muji',  tileCm: 10, rep: 1 },
   { id: 'linen',       name: 'リネン',         group: 'muji',  tileCm: 10, rep: 1 },
   { id: 'denim',       name: 'デニム',         group: 'muji',  tileCm: 10, rep: 1 },
-  { id: 'herringbone', name: 'ヘリンボーン',   group: 'muji',  tileCm: 8,  rep: 5 },
-  { id: 'border',      name: 'ボーダー',       group: 'shima', tileCm: 10, rep: 4 },
-  { id: 'stripe',      name: 'ストライプ',     group: 'shima', tileCm: 9,  rep: 6 },
-  { id: 'gingham',     name: 'ギンガムチェック', group: 'check', tileCm: 10, rep: 6 },
-  { id: 'tartan',      name: 'タータンチェック', group: 'check', tileCm: 16, rep: 2 },
+  { id: 'herringbone', name: '杉綾',           group: 'muji',  tileCm: 8,  rep: 5 },
+  { id: 'border',      name: 'よこじま',       group: 'shima', tileCm: 10, rep: 4 },
+  { id: 'stripe',      name: 'たてじま',       group: 'shima', tileCm: 9,  rep: 6 },
+  { id: 'gingham',     name: 'ギンガム', group: 'check', tileCm: 10, rep: 6 },
+  { id: 'tartan',      name: 'タータン', group: 'check', tileCm: 16, rep: 2 },
   { id: 'chidori',     name: '千鳥格子',       group: 'check', tileCm: 10, rep: 8 },
   { id: 'dot',         name: '水玉',           group: 'dot',   tileCm: 9,  rep: 6 },
-  { id: 'dotmix',      name: 'いろいろ水玉',   group: 'dot',   tileCm: 12, rep: 5 },
+  { id: 'dotmix',      name: '大小の水玉',     group: 'dot',   tileCm: 12, rep: 5 },
   { id: 'kobana',      name: '小花',           group: 'hana',  tileCm: 12, rep: 6 },
-  { id: 'hokuo',       name: '北欧の花',       group: 'hana',  tileCm: 40, rep: 2 },
-  { id: 'leaf',        name: 'リーフ',         group: 'hana',  tileCm: 20, rep: 4 },
+  { id: 'hokuo',       name: '大きな花',       group: 'hana',  tileCm: 40, rep: 2 },
+  { id: 'leaf',        name: '木の葉',         group: 'hana',  tileCm: 20, rep: 4 },
   { id: 'sakura',      name: '桜',             group: 'wa',    tileCm: 15, rep: 5 },
   { id: 'asanoha',     name: '麻の葉',         group: 'wa',    tileCm: 14, rep: 7 },
   { id: 'seigaiha',    name: '青海波',         group: 'wa',    tileCm: 12, rep: 6 },
@@ -58,7 +58,7 @@ export const COLORWAYS = [
   { id: 'karashi',name: 'からし',     colors: ['#c49a3c', '#3b3329', '#f0e9d8'] },
   { id: 'enji',   name: 'えんじ',     colors: ['#76303a', '#eee2cf', '#d4a65b'] },
   { id: 'koke',   name: 'こけ緑',     colors: ['#5a6943', '#ece5d1', '#b6773d'] },
-  { id: 'pink',   name: 'くすみピンク', colors: ['#d8b2ab', '#7a4a4f', '#f5eee6'] },
+  { id: 'pink',   name: 'ピンク', colors: ['#d8b2ab', '#7a4a4f', '#f5eee6'] },
   { id: 'mizu',   name: '水色',       colors: ['#a8c2cd', '#2f4c62', '#f4f0e6'] },
   { id: 'beige',  name: 'ベージュ',   colors: ['#ccb796', '#594534', '#f3ede0'] },
   { id: 'ai',     name: 'あい',       colors: ['#1f3e64', '#efebe0', '#6f98c0'] },
@@ -216,8 +216,13 @@ function threadCount(S, tileCm, perCm, minPx = 2) {
   return Math.max(8, Math.min(Math.round(tileCm * perCm), Math.floor(S / minPx)));
 }
 
+// 小さな見本(fabricThumb)を描くあいだだけ、糸を太く・織り目を強くする
+// (むじ・帆布・リネン・デニムが同じ色でも、ボタンの見本で見分けられるように)
+let COARSE = 0;
+const COARSE_THREADS = { fine: 30, canvas: 13, linen: 20, twill: 22 };
 function applyWeave(ctx, S, f, kind, perCm, strength, minPx) {
-  const T = threadCount(S, f.tileCm, perCm, minPx);
+  let T = threadCount(S, f.tileCm, perCm, minPx);
+  if (COARSE) { T = Math.min(T, COARSE_THREADS[kind] || 30); strength = Math.min(1, strength * COARSE); }
   const n = weaveNoise(S, kind, T);
   ctx.save();
   ctx.globalCompositeOperation = 'overlay';
@@ -301,7 +306,7 @@ const DRAW = {
   },
   denim(ctx, S, c, n, R, f) {
     // たて糸 = 地の色(ところどころ色あせ)、よこ糸 = 白っぽい。3/1 の綾織りで斜めの線が出る
-    const T = threadCount(S, f.tileCm, 13, 2.5);
+    const T = COARSE ? Math.min(threadCount(S, f.tileCm, 13, 2.5), 24) : threadCount(S, f.tileCm, 13, 2.5);
     const tmp = makeCanvas(S, S), g = tmp.getContext('2d');
     const id = g.createImageData(S, S), d = id.data;
     // 地の色が明るい組みでは、柄の色(濃い方)をたて糸にする → いつも「デニムらしい」濃い布
@@ -491,7 +496,8 @@ const DRAW = {
       });
     }
     for (const fl of flowers) {
-      const main = fl.k ? c[1] : c[2] === c[0] ? c[1] : mix(c[1], c[2], 0.55);
+      // 2つめの花: 差し色が地の色とはっきりちがえば差し色、近ければ柄の色をうすめた色(灰色にしない)
+      const main = fl.k ? c[1] : Math.abs(lum(c[2]) - lum(c[0])) > 0.25 ? c[2] : mix(c[1], c[0], 0.38);
       wrap9(S, fl.x, fl.y, fl.r * 1.05, (x, y) => {
         ctx.save(); ctx.translate(x, y); ctx.rotate(fl.rot);
         ctx.fillStyle = main;                 // 丸い花びら 7まい
@@ -700,10 +706,18 @@ export function fabricCanvas(fabricId, colorwayId, sizePx, scale = 1) {
   return c;
 }
 
+const THUMB_COARSE = { plain: 1.3, hanpu: 1.35, linen: 1.3, denim: 1 };   // 数 = 織り目の強さの倍率
+
 // 選ぶボタン用。小さい絵でも柄が分かるよう、1枚の一部(だいたい 6〜10cm 四方)を見せる
 export function fabricThumb(fabricId, colorwayId, px = 96) {
   const f = getFabric(fabricId);
   const P = Math.max(16, Math.round(px));
+  if (THUMB_COARSE[f.id]) {                             // むじの仲間: 見本だけ織り目を大きく描く
+    const out = makeCanvas(P, P);
+    COARSE = THUMB_COARSE[f.id];
+    try { drawFabric(out.getContext('2d'), f.id, colorwayId, P); } finally { COARSE = 0; }
+    return out.toDataURL ? out.toDataURL('image/png') : null;
+  }
   const showCm = Math.min(f.tileCm, Math.max(6, Math.min(10, f.tileCm / 2)));
   const frac = showCm / f.tileCm;                       // 1枚の何割を見せるか
   const big = Math.min(1024, Math.round(P / frac));
