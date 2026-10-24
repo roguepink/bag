@@ -2,7 +2,7 @@
 // createViewer(containerEl) => { show(shape, look), setAutoRotate(bool), resize(), snapshot(px), dispose() }
 // show は Promise を返す(柄の絵ができて、形がそろったら終わる)。
 // 回し方: 横になぞる = 回る(縦はページが動く)、2本指ピンチ・zoomBy(f) = 寄る・引く、ダブルタップ = もとの向き。
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/build/three.module.min.js';
 import { buildBag } from './viewer3d-bag.js';
 
 const PI = Math.PI;

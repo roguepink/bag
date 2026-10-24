@@ -21,7 +21,7 @@
 | 総合チェック係 | `tools/*`, `docs/review-*.md`(見つけた問題は持ち主の係に直してもらう) |
 
 ## 作り(ビルドなし)
-- ES modules・ビルドなし。three.js r186 は `vendor/three/build/`(同梱・CDN なし)。importmap で `'three'`
+- ES modules・ビルドなし。three.js r186 は `vendor/three/build/`(同梱・CDN なし)。import は相対パス(`../vendor/three/build/three.module.min.js`)。**importmap は使わない**(iOS 16.4 未満で真っ白になる)
 - 画像・音のファイルは基本使わない。柄は canvas で描く、3D は寸法から作る
 - 単位は **mm(ミリ)**。型紙の座標は y が下向き(SVG と同じ)
 - 確認: `source ~/.local/venvs/ryokoshi/bin/activate && python3 tools/check.py`(総合チェック係が作る。headless Chrome・音なし)

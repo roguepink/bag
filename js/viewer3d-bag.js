@@ -1,7 +1,7 @@
 // 3D係: Shape3D(mm)から、バッグの形を手続き的に作る。
 // buildBag(shape, mats) => { group, stats }
 // すべて mm 単位。y が上、+z が前(正面)、+x が右。
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/build/three.module.min.js';
 
 const PI = Math.PI, TAU = PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
