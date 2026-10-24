@@ -358,6 +358,7 @@ h3 { font-size: 1.15rem; }
 
 /* ---------- 印刷の案内 ---------- */
 .guide { display: grid; gap: 18px; counter-reset: g; }
+.guide > * { min-width: 0; }
 @media (min-width: 900px) { .guide { grid-template-columns: repeat(3, 1fr); } }
 .guide-card {
   counter-increment: g; position: relative;
@@ -376,7 +377,7 @@ h3 { font-size: 1.15rem; }
 .guide-card strong { color: var(--accent); }
 .page-map { display: inline-grid; gap: 6px; margin: 4px 0 12px; padding: 12px; background: var(--warm); border-radius: 12px; }
 .page-map span {
-  display: grid; place-items: center; min-width: 58px; height: 74px; padding: 0 4px;
+  display: grid; place-items: center; min-width: 0; aspect-ratio: 3 / 4; padding: 0 2px;
   background: #fff; border: 1.5px solid var(--line-2); border-radius: 4px;
   font-weight: 700; font-size: .92rem; color: var(--accent);
 }

@@ -81,7 +81,7 @@ export async function renderPrint(root, { bag, go, isStale }) {
         <h3>番号の順に貼る</h3>
         ${ILL_GLUE}
         <p>紙のすみの番号の順に並べ、<strong>◆の印</strong>どうしを重ねてテープで貼ります。</p>
-        ${pages.length > 1 ? `<div class="page-map-wrap"><div class="page-map" style="grid-template-columns:repeat(${cols}, 58px)" aria-label="紙の並べ方">${map}</div></div>` : ''}
+        ${pages.length > 1 ? `<div class="page-map-wrap"><div class="page-map" style="grid-template-columns:repeat(${cols}, minmax(40px, 58px))" aria-label="紙の並べ方">${map}</div></div>` : ''}
       </div>
     </div>
     <div class="tip">${PC_SVG}<p>パソコンなら、印刷の画面で<strong>「PDFとして保存」</strong>をえらぶと、コンビニのコピー機でも印刷できます。</p></div>
