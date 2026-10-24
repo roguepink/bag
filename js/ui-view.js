@@ -106,7 +106,7 @@ export async function renderView(root, { bag, go, isStale }) {
   // 指で回せる案内(一度だけ)
   let hint = null;
   if (viewer && !store.get('hintShown')) {
-    hint = h(`<div class="hint">${FINGER_SVG}<span>横になぞると回ります</span></div>`);
+    hint = h(`<div class="hint">${FINGER_SVG}<span>${phraseHTML('横になぞると回ります')}</span></div>`);
     stage.appendChild(hint);
     const hide = () => {
       if (!hint) return;
