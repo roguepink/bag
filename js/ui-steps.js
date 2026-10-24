@@ -10,8 +10,13 @@ const loadGlossary = () => (glossP ||= import('./glossary.js').then((m) => (Arra
 function withTerms(text, terms) {
   const t = esc(text);
   if (!terms.length) return t;
-  const re = new RegExp(terms.map((g) => esc(g.term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
-  return t.replace(re, (m) => `<button type="button" class="term" data-term="${m}">${m}</button>`);
+  // 文の中では find の形で探す(「わ」→「「わ」」など)。長い言葉から先に
+  const key = (g) => esc(g.find || g.term);
+  const re = new RegExp(terms.map((g) => key(g).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+  return t.replace(re, (m) => {
+    const k = terms.findIndex((g) => key(g) === m);
+    return `<button type="button" class="term" data-k="${k}">${m}</button>`;
+  });
 }
 
 function openTerm(item) {
@@ -34,7 +39,7 @@ function openTerm(item) {
 export async function renderSteps(root, { bag, go, isStale }) {
   const size = pickSize(bag, store.get('size'));
   const gloss = (await loadGlossary()).filter((g) => g && g.term && g.text)
-    .sort((a, b) => b.term.length - a.term.length);
+    .sort((a, b) => (b.find || b.term).length - (a.find || a.term).length);
   if (isStale && isStale()) return;
   const steps = typeof bag.steps === 'function' ? (safe(() => bag.steps(paramsOf(bag, size)), []) || []) : [];
   const saved = store.get('step') || {};
@@ -89,7 +94,7 @@ export async function renderSteps(root, { bag, go, isStale }) {
   const onTerm = (e) => {
     const b = e.target.closest('.term');
     if (!b) return;
-    const item = gloss.find((g) => esc(g.term) === b.dataset.term || g.term === b.dataset.term);
+    const item = gloss[+b.dataset.k];
     if (item) openTerm(item);
   };
   root.addEventListener('click', onTerm);
