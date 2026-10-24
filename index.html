@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>バッグの型紙</title>
+<meta name="description" content="バッグの形を3Dで見てえらび、原寸の型紙を家のプリンターで印刷できます。">
+<meta name="theme-color" content="#faf7f0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="バッグの型紙">
+<link rel="stylesheet" href="css/style.css">
+<style id="page-size">@page { size: A4; margin: 0; }</style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/build/three.module.min.js" } }
+</script>
+</head>
+<body>
+<div class="app" id="app-shell">
+  <header class="topbar" id="topbar">
+    <button class="back" id="back" type="button" aria-label="もどる">
+      <span class="back-arrow" aria-hidden="true">‹</span><span>もどる</span>
+    </button>
+    <a class="brand" href="#/" id="brand" aria-label="はじめの画面へ">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><path d="M17 18v-3a7 7 0 0 1 14 0v3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M9 18h30l-3 23H12z" fill="currentColor"/></svg>
+      <span>バッグの型紙</span>
+    </a>
+  </header>
+  <main id="screen" class="screen" tabindex="-1" aria-live="polite">
+    <div class="loading"><div class="spinner" aria-hidden="true"></div><p>じゅんびしています…</p></div>
+  </main>
+</div>
+<!-- 印刷のときだけ出る場所 -->
+<div id="print-area" aria-hidden="true"></div>
+<noscript><p style="font-size:24px;padding:24px">このアプリを使うには、JavaScript を有効にしてください。</p></noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
