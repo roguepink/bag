@@ -6,6 +6,11 @@ import { cmText, r5 } from './parts.js';
 
 // ---------- この仲間で使う道具 ----------
 
+// 説明の文字。線の印(長さほぼ 0)のラベルとして書くと、型紙が 90°回されて並んでも 文字が いっしょに回る。
+function note(at, text, vertical = false) {
+  return { type: 'line', pts: [at, vertical ? [at[0], at[1] + 0.01] : [at[0] + 0.01, at[1]]], label: text };
+}
+
 // 底の角を四角く切りとった形(つまみマチ)。W 型紙の幅、H 型紙の高さ、c 切りとる四角
 // 点の番号: 0 左上 → 1 右上 → 2 右わきの下 → 3 角 → 4 底の右 → 5 底の左 → 6 角 → 7 左わきの下
 function boxOutline(W, H, c) {
@@ -63,10 +68,10 @@ export const poFlat = {
         grain: [[w * 0.12, h * 0.28], [w * 0.12, h * 0.78]],
         labelAt: [w / 2, h * 0.55],
         marks: [
-          { type: 'text', at: [w / 2, 8], text: '↑ 口(ファスナーを付ける辺)', size: 3 },
+          note([w / 2, 8], '↑ 口(ファスナーを付ける辺)'),
           { type: 'notch', at: [w / 2, 0] },
           { type: 'notch', at: [w / 2, h] },
-          { type: 'text', at: [w / 2, h - 7], text: '裏布は 底に 返し口 8cm を残す', size: 3 },
+          note([w / 2, h - 7], '裏布は 底に 返し口 8cm を残す'),
         ],
       },
       tabPiece(1),
@@ -133,12 +138,11 @@ export const poBox = {
         grain: [[W * 0.12, H * 0.2], [W * 0.12, H * 0.62]],
         labelAt: [cx, H * 0.5],
         marks: [
-          { type: 'text', at: [cx, 8], text: '↑ 口(ファスナーを付ける辺)', size: 3 },
+          note([cx, 8], '↑ 口(ファスナーを付ける辺)'),
           { type: 'notch', at: [cx, 0] },
-          { type: 'text', at: [W - 12, 16], text: 'つまみ', size: 3 },
-          { type: 'text', at: [W - c / 2, H - c / 2 + 1], text: 'マチ', size: 3.5 },
-          { type: 'text', at: [c / 2, H - c / 2 + 1], text: 'マチ', size: 3.5 },
-          { type: 'text', at: [cx, H - c - 8], text: '裏布は わきに 返し口 8cm を残す', size: 3 },
+          note([W - c / 2, H - c / 2 + 1], 'マチ'),
+          note([c / 2, H - c / 2 + 1], 'マチ'),
+          note([W - 7, (H - c) * 0.5], '裏布は ここに 返し口 8cm', true),
         ],
       },
       tabPiece(2),
@@ -220,29 +224,29 @@ export const poMegane = {
         id: 'front', name: '前', cut: 1, fabric: 'outer',
         more: [{ fabric: 'lining', cut: 1 }, { fabric: 'interfacing', cut: 1 }],
         outline: meganeFront(w, h, r), seam: 10, fold: null,
-        grain: [[w * 0.18, h * 0.3], [w * 0.18, h * 0.75]],
+        grain: [[w * 0.15, h * 0.2], [w * 0.15, h * 0.42]],
         labelAt: [w / 2, h * 0.55],
         marks: [
-          { type: 'text', at: [w / 2, 6], text: '↑ 口', size: 3 },
+          note([w / 2, 6], '↑ 口'),
           { type: 'notch', at: [w / 2, h] },
           { type: 'dot', at: [w / 2, F - t] },
-          { type: 'text', at: [w / 2, F - t + 6], text: 'マグネット凹(表布)', size: 2.8 },
-          { type: 'text', at: [w / 2, h - 14], text: 'キルト芯は 細い線で切る', size: 2.8 },
+          note([w / 2, F - t + 6], 'マグネット凹(表布)'),
+          note([w / 2, h - 14], 'キルト芯は 細い線で切る'),
         ],
       },
       {
         id: 'back', name: '後ろ+ふた', cut: 1, fabric: 'outer',
         more: [{ fabric: 'lining', cut: 1 }, { fabric: 'interfacing', cut: 1 }],
         outline: back, seam: 10, fold: null,
-        grain: [[w * 0.18, F + h * 0.3], [w * 0.18, F + h * 0.75]],
+        grain: [[w * 0.15, F + h * 0.12], [w * 0.15, F + h * 0.38]],
         labelAt: [w / 2, F + h * 0.55],
         marks: [
           { type: 'line', pts: [[0, F], [w, F]], label: 'ふたの折り線' },
           { type: 'notch', at: [0, F] }, { type: 'notch', at: [w, F] },
           { type: 'notch', at: [w / 2, F + h] },
           { type: 'dot', at: [w / 2, t] },
-          { type: 'text', at: [w / 2, t + 6], text: 'マグネット凸(裏布)', size: 2.8 },
-          { type: 'text', at: [w / 2, F + 8], text: '↑ ここから上が ふた', size: 2.8 },
+          note([w / 2, t + 6], 'マグネット凸(裏布)'),
+          note([w / 2, F + 8], '↑ ここから上が ふた'),
         ],
       },
     ];
@@ -359,22 +363,22 @@ export const poGama = {
         id: 'body', name: '本体', cut: 2, fabric: 'outer',
         more: [{ fabric: 'lining', cut: 2 }, { fabric: 'interfacing', cut: 2 }],
         outline, seam: 7, fold: null,
-        grain: [[cx - a * 0.7, fh + 8], [cx - a * 0.7, fh + (p.h - fh) * 0.6]],
+        grain: [[cx - a * 0.8, fh * 0.25], [cx - a * 0.8, fh * 0.9]],
         labelAt: [cx, fh + (p.h - fh) * 0.5],
         marks: [
-          { type: 'text', at: [cx, fh * 0.3], text: 'お手持ちの口金に重ねて、', size: fs },
-          { type: 'text', at: [cx, fh * 0.3 + fs * 1.4], text: '口の線をなおしてください', size: fs },
+          note([cx, fh * 0.3], 'お手持ちの口金に重ねて、'),
+          note([cx, fh * 0.3 + fs * 1.4], '口の線をなおしてください'),
           { type: 'notch', at: [cx, 0] },
           { type: 'notch', at: [cx, p.h] },
-          { type: 'dot', at: [cx - a, fh], label: 'あき止まり' },
+          { type: 'dot', at: [cx - a, fh] }, note([cx - a + 11, fh + 6], 'あき止まり'),
           { type: 'dot', at: [cx + a, fh] },
           { type: 'notch', at: [cx - a, fh] }, { type: 'notch', at: [cx + a, fh] },
-          { type: 'text', at: [cx, fh * 0.3 + fs * 2.9], text: '(口金のちょうつがいの所 = あき止まり)', size: fs * 0.85 },
+          note([cx, fh * 0.3 + fs * 2.9], '(口金のちょうつがいの所 = あき止まり)'),
           { type: 'line', pts: dR, label: '' }, { type: 'line', pts: dL, label: '' },
           { type: 'notch', at: dR[0] }, { type: 'notch', at: dR[2] },
           { type: 'notch', at: dL[0] }, { type: 'notch', at: dL[2] },
-          { type: 'text', at: [dL[1][0] + 3, dL[1][1] - 6], text: 'ダーツ', size: 3, anchor: 'start' },
-          { type: 'text', at: [cx, p.h - 8], text: '裏布は 底に 返し口 6cm', size: 3 },
+          note([dL[1][0] + 2, dL[1][1] - 4], 'ダーツ'),
+          note([cx, p.h - 8], '裏布は 底に 返し口 6cm'),
         ],
       },
     ];
@@ -455,20 +459,20 @@ export const poCard = {
       more: [{ fabric: 'lining', cut: 1 }, { fabric: 'interfacing', cut: 1 }],
       outline: rect(w, L), seam: 10, fold: null,
       grain: [[w * 0.12, F + h * 0.15], [w * 0.12, F + h * 0.6]],
-      labelAt: [w / 2, F + h * 0.4],
+      labelAt: [w / 2, F + h * 0.28],
       marks: [
         { type: 'line', pts: [[0, F], [w, F]], label: 'ふたの折り線' },
         { type: 'line', pts: [[0, F + h], [w, F + h]], label: '底の折り線' },
         { type: 'notch', at: [0, F] }, { type: 'notch', at: [w, F] },
         { type: 'notch', at: [0, F + h] }, { type: 'notch', at: [w, F + h] },
-        { type: 'text', at: [w / 2, F * 0.62], text: 'ふた', size: 4 },
+        note([w / 2, F * 0.62], 'ふた'),
         { type: 'dot', at: [w / 2, t] },
-        { type: 'text', at: [w / 2, t + 5], text: `${snap}(裏布)`, size: 2.8 },
-        { type: 'text', at: [w / 2, F + h + h * 0.62], text: '前', size: 4 },
+        note([w / 2, t + 5], `${snap}(裏布)`),
+        note([w / 2, F + h + h * 0.62], '前'),
         { type: 'dot', at: [w / 2, L - (F - t)] },
-        { type: 'text', at: [w / 2, L - (F - t) + 5], text: `${snap}(表布)`, size: 2.8 },
+        note([w / 2, L - (F - t) + 5], `${snap}(表布)`),
         { type: 'line', pts: [[w - 1, F + h + 8], [w - 1, F + h + 8 + Math.min(60, h - 12)]] },
-        { type: 'text', at: [w - 14, F + h + 8 + Math.min(60, h - 12) / 2], text: '返し口', size: 3 },
+        note([w - 14, F + h + 8 + Math.min(60, h - 12) / 2], '返し口'),
       ],
     };
     if (hasPocket) body.marks.push({ type: 'line', closed: true, pts: [[2, F + h - ph], [w - 2, F + h - ph], [w - 2, F + h - 2], [2, F + h - 2]], label: '(裏布だけ)ポケット' });
@@ -479,7 +483,7 @@ export const poCard = {
         outline: rect(w, ph), seam: 10, fold: 'top',
         grain: [[w * 0.12, ph * 0.25], [w * 0.12, ph * 0.8]],
         labelAt: [w / 2, ph * 0.45],
-        marks: [{ type: 'text', at: [w / 2, ph - 6], text: '下の縫い代は 裏へ折って 縫いつける', size: 2.8 }],
+        marks: [note([w / 2, ph - 6], '下の縫い代は 裏へ折って 縫いつける')],
       });
     }
     return out;
